@@ -2,7 +2,7 @@
 #include "RealSenseInterface.h"
 
 
-URealSenseInterface::URealSenseInterface(const class FObjectInitializer& PCIP)
+URealSenseInterface::URealSenseInterface(const FObjectInitializer& PCIP)
 	: Super(PCIP)
 {
 

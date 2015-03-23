@@ -2,11 +2,11 @@
     "FileVersion" : 3,
 	
 	"FriendlyName" : "Real Sense Plugin",
-	"Version" : 1,
-	"VersionName" : "0.1.0",
+	"Version" : 2,
+	"VersionName" : "0.1.1",
 	"CreatedBy" : "Getnamo",
 	"CreatedByURL" : "http://syntheticinsights.com",
-	"EngineVersion" : "4.5.0",
+	"EngineVersion" : "4.7+",
 	"Description" : "Unofficial Plugin for Intel Real Sense 3D.",
 	"Category" : "Input.Controller",
 	

@@ -3,7 +3,7 @@
 #include "RealSenseJoint.h"
 
 
-URealSenseJoint::URealSenseJoint(const FPostConstructInitializeProperties &init) : UObject(init)
+URealSenseJoint::URealSenseJoint(const FObjectInitializer &init) : UObject(init)
 {
 }
 

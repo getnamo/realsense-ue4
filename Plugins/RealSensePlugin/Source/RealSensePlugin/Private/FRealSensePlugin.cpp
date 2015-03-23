@@ -14,6 +14,8 @@
 #include "RealSenseHand.h"
 #include "RealSenseInterface.h"
 
+#define PLUGIN_VERSION "0.1.1"
+
 
 IMPLEMENT_MODULE(FRealSensePlugin, RealSensePlugin)
 
@@ -39,7 +41,7 @@ public:
 
 		//Set the version, log it for debugging.
 		ver = session->QueryVersion();
-		UE_LOG(LogClass, Log, TEXT("Intel RSSDK Version %d.%d"), ver.major, ver.minor);
+		UE_LOG(LogClass, Log, TEXT("Plugin v%s, Intel RSSDK Version %d.%d"), TEXT(PLUGIN_VERSION), ver.major, ver.minor);
 
 		//log all available modules that are automatically loaded with the RSSDK
 		for (int i = 0;; i++) {

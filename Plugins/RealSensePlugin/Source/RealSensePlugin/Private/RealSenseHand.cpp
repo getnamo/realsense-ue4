@@ -4,7 +4,7 @@
 #include "RealSenseJoint.h"
 
 
-URealSenseHand::URealSenseHand(const FPostConstructInitializeProperties &init) : UObject(init)
+URealSenseHand::URealSenseHand(const FObjectInitializer &init) : UObject(init)
 {
 	QueryJoint = init.CreateDefaultSubobject<URealSenseJoint>(this, TEXT("Joint"));
 }
