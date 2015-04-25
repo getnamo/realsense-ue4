@@ -36,7 +36,8 @@ public:
         PXCSizeI32    sizeMax;          /* maximum size */
         PXCRangeF32   frameRate;        /* frame rate   */
         PXCCapture::Device::StreamOption options; /* stream options */
-        pxcI32        reserved[5];
+        pxcI32        propertySet;
+        pxcI32        reserved[4];
     };
 
     /** 

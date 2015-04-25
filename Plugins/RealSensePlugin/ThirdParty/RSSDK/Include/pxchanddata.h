@@ -4,12 +4,18 @@ INTEL CORPORATION PROPRIETARY INFORMATION
 This software is supplied under the terms of a license agreement or nondisclosure
 agreement with Intel Corporation and may not be copied or disclosed except in
 accordance with the terms of that agreement
-Copyright(c) 2013-2014 Intel Corporation. All Rights Reserved.
+Copyright(c) 2013-2015 Intel Corporation. All Rights Reserved.
 
 *******************************************************************************/
 #pragma once
 #include "pxcimage.h"
 
+/**
+	@class PXCHandData
+	@brief This class holds all the output of the hand tracking process.
+	
+	Each instance of this class holds the information of a specific frame.
+*/
 class PXCHandData: public PXCBase
 {
 public:
@@ -25,7 +31,7 @@ public:
 	/* Enumerations */
 	
 	/** @enum JointType
-		Identifiers of joints that can be tracked by the hand module
+		Identifiers of joints that can be tracked by the hand module.
 	*/
 	enum JointType
 	{
@@ -56,7 +62,7 @@ public:
 
 	/**
 		@enum ExtremityType
-		The identifier of an extremity of the tracked hand
+		Identifier of extremity points of the tracked hand.
 	*/
 	enum ExtremityType {
 		/// The closest point to the camera in the tracked hand
@@ -69,7 +75,7 @@ public:
 	};
 
 	/** @enum FingerType
-		The identifiers of the hand fingers
+		Finger identifiers.
 	*/
 	enum FingerType {            
 		/// Thumb finger
@@ -81,17 +87,18 @@ public:
 	};
        
 	/** @enum BodySideType
-		Defines the side of the body that a hand belongs to
+		The side of the body to which a hand belongs.\n
+		@note Body sides are reported from the player's point-of-view, not the sensor's.
 	*/
 	enum BodySideType {            
-		/// The hand-type was not determined    
+		/// The side was not determined    
 		BODY_SIDE_UNKNOWN=0        
 		, BODY_SIDE_LEFT            /// Left side of the body    
 		, BODY_SIDE_RIGHT           /// Right side of the body
 	};
 
 	/** @enum AlertType
-		Enumerates the events that can be detected and fired by the module
+		Identifiers for the events that can be detected and fired by the hand module.
 	*/
 	enum AlertType {
 		 ///  A hand is identified and its mask is available  
@@ -109,74 +116,101 @@ public:
 		, ALERT_HAND_OUT_OF_BOTTOM_BORDER	= 0x0800		///  The tracked object is touching the lower border of the field of view
 		, ALERT_HAND_TOO_FAR				= 0x1000		///  The tracked object is too far
 		, ALERT_HAND_TOO_CLOSE				= 0x2000		///  The tracked object is too close		
+		, ALERT_HAND_LOW_CONFIDENCE			= 0x4000		///  The tracked object is low confidence		
 	};
 	
 
 
 	/** 
 		@enum GestureStateType
-		Available gesture event states
+		Enumerates the possible states of a gesture (start/in progress/end).
+		@note Depending on the configuration, you can either get "start" and "end" events when the gesture starts/ends,\n
+		or get the "in_progress" event for every frame in which the gesture is detected. 
+		See the "continuousGesture" flag in PXCHandConfiguration::enableGesture for more details.
+		@see PXCHandConfiguration::enableGesture
 	*/
 	enum GestureStateType {
-		/// Gesture started
+		/// Gesture started - fired at the first frame where the gesture is identified
 		GESTURE_STATE_START=0			 
-		, GESTURE_STATE_IN_PROGRESS	/// Gesture is in progress
-		, GESTURE_STATE_END			/// Gesture ended
+		, GESTURE_STATE_IN_PROGRESS	/// Gesture is in progress - fired for every frame where the gesture is identified
+		, GESTURE_STATE_END			/// Gesture ended - fired after the last frame where the gestures was identified
 	};
 		       
 	/** 
 		@enum TrackingModeType
-		The Tracking mode indicates which set of joints will be tracked.
+		Defines the possible tracking modes.
+		TRACKING_MODE_FULL_HAND - enables full tracking of the hand skeleton, including all the joints' information.
+		TRACKING_MODE_EXTREMITIES - tracks only the hand's mask and its extremity points.
 	*/
 	enum TrackingModeType { 
 		/// Track the full skeleton	
 		TRACKING_MODE_FULL_HAND=0	
-		, TRACKING_MODE_EXTREMITIES	/// Track the extremities of the hand
+		, TRACKING_MODE_EXTREMITIES	/// Track the hand extremities
 	};
 
 	
 	/** 
 		@enum JointSpeedType
-		List of available modes for calculating the joint's speed	
+		Modes for calculating the joints' speed.
 	*/
 	enum JointSpeedType {
-		/// Average speed across time
+		/// Average of signed speed values (which are positive or negative depending on direction) across time
 		JOINT_SPEED_AVERAGE=0
-		, JOINT_SPEED_ABSOLUTE	/// Average of absolute speed across time 	
+		, JOINT_SPEED_ABSOLUTE	/// Average of absolute speed values (always positive regardless of direction) across time.
 	};
+
+
+
+
 
 	/** 
 		@enum AccessOrderType
-		List of the different orders in which the hands can be accessed
+		Orders in which the hands can be accessed.
 	*/
 	enum AccessOrderType {
-		/// Unique ID of the hand
+		/// By unique ID of the hand
 		ACCESS_ORDER_BY_ID=0			
 		, ACCESS_ORDER_BY_TIME 			/// From oldest to newest hand in the scene           
-		, ACCESS_ORDER_NEAR_TO_FAR		/// From near to far hand in scene
+		, ACCESS_ORDER_NEAR_TO_FAR		/// From nearest to farthest hand in scene
 		, ACCESS_ORDER_LEFT_HANDS		/// All left hands
 		, ACCESS_ORDER_RIGHT_HANDS		/// All right hands
-		, ACCESS_ORDER_FIXED			/// The index of each hand is fixed as long as it is detected (and between 0 and 1)
+		, ACCESS_ORDER_FIXED			/// The index of each hand (either 0 or 1) is fixed as long as it is detected
 	};	
+
+	/**
+	  @enum TrackingStatusType
+	  @brief Status values of hand tracking.
+	  In case of problematic tracking conditions, this value indicates the problem type.
+	*/
+	enum TrackingStatusType {
+		/// Optimal tracking conditions
+		 TRACKING_STATUS_GOOD = 0
+		,TRACKING_STATUS_OUT_OF_FOV = 1			/// The hand is outside the field of view (in the x/y axis)
+		,TRACKING_STATUS_OUT_OF_RANGE = 2		/// The hand is outside the depth range
+		,TRACKING_STATUS_HIGH_SPEED = 4			/// The hand is moving at high speed 
+		,TRACKING_STATUS_POINTING_FINGERS = 8	/// The hand fingers pointing the camera 
+	};
+
 
 	/* Data Structures */
     
 	/** @struct JointData
-		Contains the information about the position and rotation of a joint in the hand's skeleton
+		A structure containing information about the position and rotation of a joint in the hand's skeleton.
+		See the Hand Module Developer Guide for more details.
 	*/
 	struct JointData 
 	{
-		pxcI32			confidence;          /// The confidence score of the tracking data, ranging from 0 to 100
-		PXCPoint3DF32   positionWorld;       /// The geometric position in world coordinates (meters)
-        PXCPoint3DF32   positionImage;       /// The geometric position in depth coordinates (pixels)
-        PXCPoint4DF32   localRotation;       /// A quaternion representing the local 3D orientation (relative to parent joint) from the joint's parent to the joint
-        PXCPoint4DF32   globalOrientation;   /// A quaternion representing the global 3D orientation (relative to camera) from the joint's parent to the joint
-		PXCPoint3DF32	speed;				 /// The speed of the joints in the 3D world coordinates
+		pxcI32			confidence;          /// RESERVED: for future confidence score feature
+		PXCPoint3DF32   positionWorld;       /// The geometric position in 3D world coordinates, in meters
+        PXCPoint3DF32   positionImage;       /// The geometric position in 2D image coordinates, in pixels. (Note: the Z coordinate is the point's depth in millimeters.)
+        PXCPoint4DF32   localRotation;       /// A quaternion representing the local 3D orientation of the joint, relative to its parent joint
+        PXCPoint4DF32   globalOrientation;   /// A quaternion representing the global 3D orientation, relative to the "world" y axis
+		PXCPoint3DF32	speed;				 /// The speed of the joints in 3D world coordinates (X speed, Y speed, Z speed, in meters/second)
     };
 
 	/** 
-	    @struct ExtremitiesData
-		Contains the parameters that define extremities points
+	    @struct ExtremityData
+		Defines the positions of an extremity point.
     */
 	struct ExtremityData 
 	{	
@@ -186,175 +220,245 @@ public:
 
 	/** 
 	    @struct FingerData
-		Contains the parameters that define a finger
+		Defines the properties of a finger.
     */
 	struct  FingerData
 	{
-		pxcI32 foldedness;			/// The degree of foldedness of the tracking finger, ranging from 0 to 100
-		pxcF32 radius;				/// The radius of the tracked fingertip, default value is 0.017m when hand is not calibrated
+		pxcI32 foldedness;			/// The degree of "foldedness" of the tracked finger, ranging from 0 (least folded / straight) to 100 (most folded).
+		pxcF32 radius;				/// The radius of the tracked fingertip. The default value is 0.017m while the hand is not calibrated.
 	};
 
 	/** 
 		@struct AlertData
-		Containing the parameters that define an alert
+		Defines the properties of an alert event
     */
     struct AlertData 
 	{
-		AlertType	label;	    	/// The label that identifies this alert
-		pxcUID      handId;	    	/// The ID of the relevant hand, if relevant and known
+		AlertType	label;	    	/// The type of alert
+		pxcUID      handId;	    	/// The ID of the hand that triggered the alert, if relevant and known
 		pxcI64      timeStamp;		/// The time-stamp in which the event occurred
-		pxcI32      frameNumber;    /// The number of the frame in which the event occurred
+		pxcI32      frameNumber;    /// The number of the frame in which the event occurred (relevant for recorded sequences)
 	};
 	
 	/** 
 		@struct GestureData
-		Contains the parameters that define a gesture
-		Default gestures: 
-			"spreadfingers"  - hand open facing the camera
-			"thumb_up" - hand closed with thumb finger pointing up
-			"thumb_down"  - hand closed with thumb finger pointing down
-			"two_fingers_pinch_open"  - hand open with thumb finger and index finger touching each other.
-			"v_sign" - hand closed with index finger and middle finger pointing up
-			"fist" - all fingers folded into a fist. Fist can be in different orientations as long as palm is in the general direction of the camera.
+		Defines the properties of a gesture.
+		
+		The gestures in the default gesture package (installed with the hand module by default) are:
+			"spreadfingers"  - hand open facing the camera.
+			"thumb_up" - hand closed with thumb pointing up.
+			"thumb_down"  - hand closed with thumb pointing down.
+			"two_fingers_pinch_open"  - hand open with thumb and index finger touching each other.
+			"v_sign" - hand closed with index finger and middle finger pointing up.
+			"fist" - all fingers folded into a fist. The fist can be in different orientations as long as the palm is in the general direction of the camera.
 			"full_pinch" - all fingers extended and touching the thumb. The pinched fingers can be anywhere between pointing directly to the screen or in profile. 
-			"swipe" - moving the hand from one side to the other when the palm is facing the side and fingers are more or less towards the camera.
-			"tap" - hand in a natural relaxed pose and move it in Z as if you are pressing a button.
-			"wave" - an open hand facing the screen. Wave length can be any number of repetitions.
+			"tap" - a hand in a natural relaxed pose is moved forward as if pressing a button.
+			"wave" - an open hand facing the screen. The wave gesture's length can be any number of repetitions.
+			"click" - hand facing the camera either with open palm or closed move the index finger fast toward the palm center as if clicking on a mouse.
+			"swipe_down" - hold hand towards the camera and moves it down and then return it toward the starting position.
+			"swipe_up" - hold hand towards the camera and moves it up and then return it toward the starting position.
+			"swipe_right" - hold hand towards the camera and moves it right and then return it toward the starting position.
+			"swipe_left" - hold hand towards the camera and moves it left and then return it toward the starting position.
+
 	*/
 	struct GestureData 
 	{
 		pxcI64				timeStamp;					/// Time-stamp in which the gesture occurred
-		pxcUID				handId;	    				/// ID of the relevant tracked hand, if relevant and known
-		GestureStateType	state;						/// The state of the gesture			
-		pxcI32				frameNumber;				/// The number of the frame in which the gesture occurred			
-		pxcCHAR				name[MAX_NAME_SIZE];		/// Unique name of this gesture 		
+		pxcUID				handId;	    				/// The ID of the hand that made the gesture, if relevant and known
+		GestureStateType	state;						/// The state of the gesture (start, in progress, end)
+		pxcI32				frameNumber;				/// The number of the frame in which the gesture occurred (relevant for recorded sequences)	
+		pxcCHAR				name[MAX_NAME_SIZE];		/// The gesture name
 	};
 
 	/* Interfaces */
 
     /** 
 		@class IHand
-		Contains the parameters that define a hand
+		Contains all the properties of the hand that were calculated by the tracking algorithm
     */
     class IHand
 	{
 	public:
 
-	    /**	@brief the hand's unique identifier
-	    	@return the hand's unique identifier
+	    /**	
+			@brief Return the hand's unique identifier.
 		*/
 		virtual pxcUID PXCAPI QueryUniqueId() const = 0; 
 
-	    /** 		
-		@brief <Reserved> Return the identifier of the user whose hand is represented
+	    /** 
+			@brief <Reserved> Return the identifier of the user whose hand is represented.
 		*/
 		virtual pxcUID PXCAPI QueryUserId() const = 0; 
 
-	    /** 		
-		@brief Return the time-stamp in which the collection of the hand data was completed
+	    /** 
+			@brief Return the time-stamp in which the collection of the hand data was completed.
 		*/
 		virtual pxcI64 PXCAPI QueryTimeStamp() const = 0; 
 
 		/**
-			@brief Return true if there is a valid hand calibration.
-			A valid calibration results in more accurate tracking data, that is better fitted to the user's hand.
+			@brief Return true if there is a valid hand calibration, otherwise false.
+			A valid calibration results in more accurate tracking data, that is better fitted to the user's hand.\n
+			After identifying a new hand, the hand module calculates its calibration. When calibration is complete, an alert is issued.\n
+			Tracking is more robust for a calibrated hand.
 		*/
 		virtual pxcBool PXCAPI IsCalibrated(void) const = 0;
 
 	    /** 		
-		@brief Return the side of the body that the hand belongs to
+			@brief Return the side of the body to which the hand belongs (when known).
+			@note This information is available only in full-hand tracking mode (TRACKING_MODE_FULL_HAND).
+			@see PXCHandConfiguration::SetTrackingMode
 		*/
 		virtual BodySideType PXCAPI QueryBodySide() const = 0; 
 		
-		/** 		
-		@brief Return the location and dimensions of the tracked hand, represented by a 2D bounding box (pixels)
+		/**	
+			@brief Return the location and dimensions of the tracked hand, represented by a 2D bounding box (defined in pixels).
 		*/
 		virtual const PXCRectI32& PXCAPI QueryBoundingBoxImage() const = 0; 
 
 		/** 		
-		@brief Return the 2D center of mass of the hand in image space (pixels) 
+			@brief Return the 2D center of mass of the hand in image space (in pixels).
 		*/
 	   virtual const PXCPointF32& PXCAPI QueryMassCenterImage() const = 0; 
 
 	    /** 		
-		@brief Return the 3D center of mass of the hand in world space (meters)
+			@brief Return the 3D center of mass of the hand in world space (in meters).
 		*/
 		virtual const PXCPoint3DF32& PXCAPI QueryMassCenterWorld() const = 0; 
 
+		
+
+
 	    /** 		
-		@brief A quaternion representing the global 3D orientation of center joint
+			@brief A quaternion representing the global 3D orientation of the palm.
+			@note This information is available only in full-hand tracking mode (TRACKING_MODE_FULL_HAND).
+			@see PXCHandConfiguration::SetTrackingMode
 		*/
 		virtual const PXCPoint4DF32& PXCAPI QueryPalmOrientation() const = 0; 
 		
 	    /** 		
-		@brief Return the level of openness of the hand
-		@return openness level ranging from 0 (all fingers completely folded) to 100 (all fingers fully spread) 
+			@brief Return the degree of openness of the hand.
+			The possible degree values range from 0 (all fingers completely folded) to 100 (all fingers fully spread).
+			@note This information is available only in full-hand tracking mode (TRACKING_MODE_FULL_HAND)
+			@see PXCHandConfiguration::SetTrackingMode
 		*/
 		virtual pxcI32 PXCAPI QueryOpenness() const = 0;
+		
 
 		/** 		
-		@brief Get detected extremities points data
-		@param[in] extremityLabel The id of this extremity type
-		@see ExtremityType
-		@param[out] extremityPoint The extremity point data
-		@see ExtremityData
-		@return PXC_STATUS_NO_ERROR for success, an error code otherwise
+			@brief Return the data of a specific extremity point
+			
+			@param[in] extremityLabel - the id of the requested extremity point.
+			@param[out] extremityPoint - the location data of the requested extremity point.
+			
+			@return PXC_STATUS_NO_ERROR - operation succeeded.
+			
+			@see ExtremityType
+			@see ExtremityData
 		*/
 		virtual pxcStatus PXCAPI QueryExtremityPoint(ExtremityType extremityLabel, ExtremityData& extremityPoint) const = 0; 
 
 		/** 
-		@brief Get fingers data
-		@param[in] fingerLabel The id of this finger
-		@see FingerType
-		@param[out] fingerData The finger data
-		@see FingerData
-		@return PXC_STATUS_NO_ERROR for success, an error code otherwise
+			@brief Return the data of the requested finger
+			@note This information is available only in full-hand tracking mode (TRACKING_MODE_FULL_HAND)
+			@see PXCHandConfiguration::SetTrackingMode
+			
+			@param[in] fingerLabel - the ID of the requested finger.
+			@param[out] fingerData - the tracking data of the requested finger.
+			
+			@return PXC_STATUS_NO_ERROR - operation succeeded.
+			
+			@see FingerType
+			@see FingerData
 		*/
 		virtual pxcStatus PXCAPI QueryFingerData(FingerType fingerLabel, FingerData& fingerData) const = 0; 
 
 		/** 
-		@brief Get tracked hand joint data
-		@param[in] jointLabel The id of this joint
-		@see JointType
-		@param[out] jointData The tracked hand joint data
-		@see JointData
-		@return PXC_STATUS_NO_ERROR for success, an error code otherwise
-		*/			
+			@brief Return the tracking data of a single hand joint
+			@note This information is available only in full-hand tracking mode (TRACKING_MODE_FULL_HAND), when tracked-joints are enabled.
+			@see PXCHandConfiguration::SetTrackingMode
+			@see PXCHandConfiguration::EnableTrackedJoints
+
+			@param[in] jointLabel - the ID of the requested joint.
+			@param[out] jointData - the tracking data of the requested hand joint.
+			
+			@return PXC_STATUS_NO_ERROR - operation succeeded.
+			
+			@see JointType
+			@see JointData
+		*/
 		virtual pxcStatus PXCAPI QueryTrackedJoint(JointType jointLabel, JointData& jointData) const = 0; 
 
+
+		
+
 		/** 
-		@brief Get normalized hand joint data
-		@param[in] jointLabel The id of this joint
-		@see JointType
-		@param[out] jointData The normalized hand joint data
-		@see JointData
-		@return PXC_STATUS_NO_ERROR for success, an error code otherwise
+			@brief Return the tracking data of a single normalized-hand joint.
+			@note This information is available only in full-hand tracking mode, when normalized-skeleton is enabled.
+			@see PXCHandConfiguration::SetTrackingMode
+			@see PXCHandConfiguration::EnableNormalizedJoints
+			
+			@param[in] jointLabel - the ID of the requested joint.
+			@param[out] jointData - the tracking data of the requested normalized-hand joint.
+			
+			@return PXC_STATUS_NO_ERROR - operation succeeded.
+			
+			@see JointType
+			@see JointData
 		*/	
 		virtual pxcStatus PXCAPI QueryNormalizedJoint(JointType jointLabel, JointData& jointData) const = 0; 
 
 		/**			
 			@brief Retrieve the 2D image mask of the tracked hand. 	 
 			In the image mask, each pixel occupied by the hand is white (value of 255) and all other pixels are black (value of 0).
-			@param[out] image the blob image to be returned
-			@return PXC_STATUS_NO_ERROR if a current image exists and could be copied; otherwise, return the following error:
-			PXC_STATUS_DATA_UNAVAILABLE - if segmentation image is not available.		
+			@note This information is available only when the segmentation image is enabled.
+			@see PXCHandConfiguration::EnableSegmentationImage
+			
+			@param[out] image - the 2D image mask.
+			
+			@return PXC_STATUS_NO_ERROR - operation succeeded.
+			@return PXC_STATUS_DATA_UNAVAILABLE - image mask is not available.		
 		*/		
 		virtual pxcStatus PXCAPI QuerySegmentationImage(PXCImage* & image) const = 0; 
 		
 		/** 
-		@brief  Return true/false if tracked joints of HandData exists 
+			@brief  Return true/false if tracked joints data exists 
+			@note This information is available only when full-hand tracking mode is enabled.
+			@see PXCHandConfiguration::SetTrackingMode
+			@see PXCHandConfiguration::EnableTrackedJoints
 		*/
 		virtual pxcBool PXCAPI HasTrackedJoints() const= 0;
 
 		/** 
-		@brief  Return true/false if normalized joints of HandData exists 
+			@brief  Return true/false if normalized joint data exists .
+			@note This information is available only in full-hand tracking mode, when normalized-skeleton is enabled.
+			@see PXCHandConfiguration::SetTrackingMode
+			@see PXCHandConfiguration::EnableNormalizedJoints
 		*/
 		virtual pxcBool PXCAPI HasNormalizedJoints() const= 0;
 
 		/** 
-		@brief  Return true/false if hand segmentation image exists 
+			@brief  Return true/false if hand segmentation image exists. 
+			@see PXCHandConfiguration::EnableSegmentationImage
 		*/
 		virtual pxcBool PXCAPI HasSegmentationImage()const= 0;
+
+		/** @brief Return the tracking status (a bit-mask of one or more TrackingStatusType enum values).
+			@see TrackingStatusType 
+		*/
+		virtual pxcI32 PXCAPI QueryTrackingStatus() const= 0;
+
+		/** 		
+		@brief Return the palm radius in image space (number of pixels). 
+		The palm radius is the radius of the minimal circle that contains the hand's palm.
+		*/
+	   virtual const pxcF32 PXCAPI QueryPalmRadiusImage() const = 0; 
+
+	    /** 		
+		@brief Return the palm radius in world space (meters).
+		The palm radius is the radius of the minimal circle that contains the hand's palm.
+		*/
+		virtual const pxcF32 PXCAPI QueryPalmRadiusWorld() const = 0; 
+
 
 	};	// class IHand
 
@@ -362,87 +466,103 @@ public:
 	/* General */
 
 	/**
-	* @brief Updates data to latest available output.
+		@brief Updates hand data to the most current output.
 	*/
 	virtual pxcStatus PXCAPI Update() = 0;
 
 	/* Alerts Outputs */
 	
 	/**
-		@brief Get the number of fired alerts in the current frame.
-		@return the number of fired alerts.
+		@brief Return the number of fired alerts in the current frame.
 	*/
 	virtual pxcI32 PXCAPI QueryFiredAlertsNumber(void) const = 0;
 
 	/** 
-		@brief Get the details of the fired alert at the requested index.
-		@param[in] index the zero-based index of the requested fired alert .
-		@param[out] alertData contains all the information for the fired event. 
-		@see AlertData
+		@brief Get the details of the fired alert with the given index.
+		
+		@param[in] index - the zero-based index of the requested fired alert.
+		@param[out] alertData - the information for the fired event. 
+		
 		@note the index is between 0 and the result of QueryFiredAlertsNumber()
-		@see QueryFiredAlertsNumber()
-		@return PXC_STATUS_NO_ERROR if returning fired alert data was successful; otherwise, return one of the following errors:
-		PXC_STATUS_PARAM_UNSUPPORTED - if the input parameter value is not supported. For instance, index >= size of all enabled alerts
+		
+		@return PXC_STATUS_NO_ERROR - operation succeeded.
+		@return PXC_STATUS_PARAM_UNSUPPORTED - invalid input parameter.
+		
+		@see AlertData
+		@see QueryFiredAlertsNumber
 	*/
 	virtual pxcStatus PXCAPI QueryFiredAlertData(pxcI32 index, AlertData & alertData) const = 0;
 	
 	/**
 		@brief Return whether the specified alert is fired in the current frame, and retrieve its data if it is.
-		@param[in] alertEvent the ID of the event.
-		@see AlertType
-		@param[out] alertData contains all the information for the fired event.
-		@see AlertData
+		
+		@param[in] alertEvent - the ID of the fired event.
+		@param[out] alertData - the information for the fired event.
+		
 		@return true if the alert is fired, false otherwise.
+		
+		@see AlertType
+		@see AlertData
 	*/
 	virtual pxcBool PXCAPI IsAlertFired(AlertType alertEvent, AlertData & alertData) const = 0;
 
 	/**
 		@brief Return whether the specified alert is fired for a specific hand in the current frame, and retrieve its data.
-		@param[in] alertEvent the label of the alert event.
-		@see AlertType
-		@param[in] handID the ID of the hand who's alert should be retrieved. 
-		@param[out] alertData contains all the information for the fired event.
-		@see AlertData
+		
+		@param[in] alertEvent - the alert type.
+		@param[in] handID - the ID of the hand whose alert should be retrieved. 
+		@param[out] alertData - the information for the fired event.
 		@return true if the alert is fired, false otherwise.
+		
+		@see AlertType
+		@see AlertData
+
 	*/
 	virtual pxcBool PXCAPI IsAlertFiredByHand(AlertType alertEvent, pxcUID handID, AlertData & alertData) const = 0;
 
     /* Gestures Outputs */
 
 	/** 
-		@brief Get the number of fired gestures in the current frame.
-		@return number of fired gestures.
+		@brief Return the number of gestures fired in the current frame.
 	*/
 	virtual pxcI32 PXCAPI QueryFiredGesturesNumber(void) const = 0;
 
 	/** 
-		@brief Get the details of the fired gesture at the requested index.
-		@param[in] index the zero-based index of the requested fired gesture.
-		@param[out] gestureData contains all the information for the fired gesture.
+		@brief Get the details of the fired gesture with the given index.
+		
+		@param[in] index - the zero-based index of the requested fired gesture.
+		@param[out] gestureData - the information for the fired gesture.
+		
+		@note The gesture index must be between 0 and [QueryFiredGesturesNumber() - 1]
+		
+		@return PXC_STATUS_NO_ERROR - operation succeeded.
+		@return PXC_STATUS_PARAM_UNSUPPORTED - invalid input parameter.
+		
 		@see GestureData
-		@note the index is between 0 and the result of QueryFiredGesturesNumber()
-		@see QueryFiredGesturesNumber()
-		@return PXC_STATUS_NO_ERROR if the fired gesture data successfully; otherwise, return one of the following errors:
-		PXC_STATUS_PARAM_UNSUPPORTED - if the input parameter value is not supported. For instance, index >= size of all enabled gestures
+		@see QueryFiredGesturesNumber
 	*/
 	virtual pxcStatus PXCAPI QueryFiredGestureData(pxcI32 index, GestureData & gestureData) const = 0;
 
 	/** 
-		@brief Check whether a gesture was fired and return its details if it was.
-		@param[in] gestureName the name of the gesture to be checked.
-		@param[out] gestureData will contain all the information for the fired gesture.
-		@see GestureData
+		@brief Check whether a gesture was fired and if so return its details.
+		
+		@param[in] gestureName - the name of the gesture to be checked.
+		@param[out] gestureData - the information for the fired gesture.
+		
 		@return true if the gesture was fired, false otherwise.
+		
+		@see GestureData
 	*/
 	virtual pxcBool PXCAPI IsGestureFired(const pxcCHAR* gestureName, GestureData & gestureData) const = 0;
         
 	/**
-		@brief Return whether the specified gesture is fired for a specific hand in the current frame, and retrieve its data.
-		@param[in] gestureName the name of the gesture to be checked.
-		@param[in] handID the ID of the hand who's alert should be retrieved. 
-		@param[out] gestureData will contain all the information for the fired gesture.
-		@see GestureData
+		@brief Return whether the specified gesture is fired for a specific hand in the current frame, and if so retrieve its data.
+		@param[in] gestureName - the name of the gesture to be checked.
+		@param[in] handID - the ID of the hand whose alert should be retrieved. 
+		@param[out] gestureData - the information for the fired gesture.
+		
 		@return true if the gesture was fired, false otherwise.
+		@see GestureData
 	*/
 	virtual pxcBool PXCAPI IsGestureFiredByHand(const pxcCHAR* gestureName, pxcUID handID, GestureData & gestureData) const = 0;
 
@@ -450,42 +570,49 @@ public:
 		
 	/** 
 		@brief Return the number of hands detected in the current frame.            
-		@return The number of hands detected in the current frame.
 	*/
 	virtual pxcI32 PXCAPI QueryNumberOfHands(void) const = 0;
 
 	/** 
-		@brief Retrieve the hand's uniqueId.			
-		@param[in] accessOrder the order in which the hands are enumerated (accessed).
-		@see AccessOrderType
-		@param[in] index the index of the hand to be retrieve, based on the given AccessOrder.
-		@param[out] handId contains the hand's uniqueId.
-		@return PXC_STATUS_NO_ERROR if the hand exists; otherwise, return one of the following errors:
-		PXC_STATUS_PARAM_UNSUPPORTED - Unsupported parameter value. For instance, index >= total number of hands					
+		@brief Retrieve the given hand's uniqueId.		
+		
+		@param[in] accessOrder - the order in which the hands are enumerated (accessed).
+		@param[in] index - the index of the hand to be retrieved, based on the given AccessOrder.
+		@param[out] handId - the hand's uniqueId.
+		
+		@return PXC_STATUS_NO_ERROR - operation succeeded.
+		@return PXC_STATUS_PARAM_UNSUPPORTED - invalid parameter.
+
+		@see AccessOrderType		
 	*/
 	virtual pxcStatus PXCAPI QueryHandId(AccessOrderType accessOrder, pxcI32 index, pxcUID &handId) const = 0;
 
 	/** 
-		@brief Retrieve the hand object data using a specific AccessOrder and index in that order
-		@param[in] accessOrder the order in which the hands are enumerated (accessed).
+		@brief Retrieve the hand object data using a specific AccessOrder and related index.
+		
+		@param[in] accessOrder - the order in which the hands are enumerated (accessed).
+		@param[in] index - the index of the hand to be retrieved, based on the given AccessOrder.
+		@param[out] handData - the information for the hand.
+		
+		@return PXC_STATUS_NO_ERROR - operation succeeded.
+		@return PXC_STATUS_PARAM_UNSUPPORTED - index >= MAX_NUM_HANDS.
+		@return PXC_STATUS_DATA_UNAVAILABLE  - index >= number of detected hands.
+
 		@see AccessOrder
-		@param[in] index the index of the hand to be retrieve, based on the given AccessOrder.
-		@param[out] hand contains all the information for the hand.
-		@see HandData
-		@return PXC_STATUS_NO_ERROR if the hand was retrieved successfully; otherwise, return one of the following errors:
-		PXC_STATUS_PARAM_UNSUPPORTED - if index >= MAX_NUM_HANDS
-		PXC_STATUS_DATA_UNAVAILABLE  - if index >= number of detected hands                 
+		@see IHand		
 	*/
 	virtual pxcStatus PXCAPI QueryHandData(AccessOrderType accessOrder, pxcI32 index, IHand *& handData) const = 0;
 
 	/** 
-		@brief Retrieve the hand object data using its unique Id
-		@param[in] handID the unique ID of the requested hand
-		@param[out] hand contains all the information for the hand.
-		@see HandData
-		@return PXC_STATUS_NO_ERROR if the hand was retrieved successfully; otherwise, return one of the following errors:
-		PXC_STATUS_DATA_UNAVAILABLE  - if there is no output hand data
-		PXC_STATUS_PARAM_UNSUPPORTED - if there is no hand data for the given hand ID.                        
+		@brief Retrieve the hand object data by its unique Id.
+		@param[in] handID - the unique ID of the requested hand
+		@param[out] handData - the information for the hand.
+		
+		@return PXC_STATUS_NO_ERROR - operation succeeded.
+		@return PXC_STATUS_DATA_UNAVAILABLE  - there is no output hand data.
+		@return PXC_STATUS_PARAM_UNSUPPORTED - there is no hand data for the given hand ID. 
+
+		@see IHand		
 	*/
 	 virtual pxcStatus PXCAPI QueryHandDataById(pxcUID handID, IHand *& handData) const = 0;
 };

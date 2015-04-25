@@ -9,16 +9,16 @@ Copyright(c) 2012 Intel Corporation. All Rights Reserved.
 *******************************************************************************/ 
 #pragma once 
 
-#define PXC_VERSION_MAJOR    3 
-#define PXC_VERSION_MINOR    1 
+#define PXC_VERSION_MAJOR    4 
+#define PXC_VERSION_MINOR    0 
 #define PXC_VERSION_BUILD    0 
-#define PXC_VERSION_REVISION 25181 
+#define PXC_VERSION_REVISION 52526 
 
 #define RSSDK_REG_DEV           TEXT("Software\\Intel\\RSSDK") 
 #define RSSDK_REG_DEV32         TEXT("Software\\Wow6432Node\\Intel\\RSSDK") 
 
-#define RSSDK_REG_RUNTIME       TEXT("Software\\Intel\\RSSDK\\v3") 
-#define RSSDK_REG_RUNTIME32     TEXT("Software\\Wow6432Node\\Intel\\RSSDK\\v3") 
+#define RSSDK_REG_RUNTIME       TEXT("Software\\Intel\\RSSDK\\v4") 
+#define RSSDK_REG_RUNTIME32     TEXT("Software\\Wow6432Node\\Intel\\RSSDK\\v4") 
 
 #define RSSDK_REG_DISPATCH      RSSDK_REG_RUNTIME   TEXT("\\Dispatch") 
 #define RSSDK_REG_DISPATCH32    RSSDK_REG_RUNTIME32 TEXT("\\Dispatch") 

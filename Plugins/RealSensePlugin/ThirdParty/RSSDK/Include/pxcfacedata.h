@@ -94,7 +94,8 @@ public:
 	struct HeadPosition
 	{
 		PXCPoint3DF32 headCenter;
-		pxcI32 reserved[10];
+		pxcI32 confidence;
+		pxcI32 reserved[9];
 	};
 
 	struct PoseEulerAngles
@@ -195,6 +196,11 @@ public:
 		*/		
 		virtual pxcBool PXCAPI QueryRotationMatrix(pxcF64 outRotationMatrix[9]) const = 0;
 
+		/*
+		* Returns position(angle) confidence
+		*/
+		virtual pxcI32 PXCAPI QueryConfidence() const = 0;
+
 	protected:
 		virtual ~PoseData() {}
 	};
@@ -227,7 +233,9 @@ public:
 			EXPRESSION_EYES_TURN_RIGHT, 
 			EXPRESSION_EYES_UP,
 			EXPRESSION_EYES_DOWN,
-			EXPRESSION_TONGUE_OUT
+			EXPRESSION_TONGUE_OUT,
+			EXPRESSION_PUFF_RIGHT,
+			EXPRESSION_PUFF_LEFT
 		};
 
 		struct FaceExpressionResult
@@ -246,6 +254,17 @@ public:
 
 	protected:
 		virtual ~ExpressionsData() {}
+	};
+
+	class PulseData
+	{
+	public:
+		/** 
+			@brief Queries user estimated heart rate.
+			@param[out] outHeartRate - Heart rate estimation.
+			@return true if the execution was successful , false if heart rate calculation failed.
+		*/	
+		virtual pxcF32 PXCAPI QueryHeartRate() const = 0;
 	};
 
 	class RecognitionData
@@ -281,15 +300,15 @@ public:
 	class RecognitionModuleData
 	{
 	public:
-				/** 
-			@brief Retrieves the size of the Recognition database for the user to be able to allocate the db buffer in the correct size
+		/** 
+			@brief Retrieves the size of the recognition database for the user to be able to allocate the db buffer in the correct size
 			@return The size of the database in bytes.
 		*/
 		virtual pxcI32 PXCAPI QueryDatabaseSize() const = 0;
 
 		/** 
-			@brief Retrieves the Recognition database to allow the user to save the database for later usage.
-			@param[in] buffer A user allocated buffer to copy the database into. The user must make sure the buffer is large enough (database size can be determined by calling QueryDatabaseSize()), and deallocated it if necessary.
+			@brief Copies the recognition database buffer to the user. Allows user to store it for later usage.
+			@param[in] buffer A user allocated buffer to copy the database into. The user must make sure the buffer is large enough (can be determined by calling QueryDatabaseSize()).
 			@return true if database has been successfully copied to db. false - otherwise.
 		*/
 		virtual pxcBool PXCAPI QueryDatabaseBuffer(pxcBYTE* buffer) const = 0;
@@ -336,6 +355,11 @@ public:
 		* Returns user's recognition data - null if it is not enabled.
 		*/
 		virtual PXCFaceData::RecognitionData* PXCAPI QueryRecognition() = 0;		
+
+		/*
+		* Returns user's pulse data - null if it is not enabled.
+		*/
+		virtual PXCFaceData::PulseData* PXCAPI QueryPulse() = 0;		
 
      protected:
 		virtual ~Face() {}
@@ -448,9 +472,7 @@ public:
 		@see AlertData
 		@return true if the alert is fired, false otherwise.
     */
-    virtual pxcBool PXCAPI IsAlertFiredByFace(AlertData::AlertType alertEvent, pxcUID faceID, AlertData* alertData) const = 0;        
-	
-
+    virtual pxcBool PXCAPI IsAlertFiredByFace(AlertData::AlertType alertEvent, pxcUID faceID, AlertData* alertData) const = 0; 
 
 #pragma  endregion Alerts
 

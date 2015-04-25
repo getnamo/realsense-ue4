@@ -46,14 +46,15 @@ enum pxcStatus {
     PXC_STATUS_DATA_NOT_INITIALIZED=    -502,   /** Data failed to initialize */
     PXC_STATUS_INIT_FAILED=             -503,   /** Module failure during initialization */
 
-
     PXC_STATUS_STREAM_CONFIG_CHANGED=   -601,   /** Configuration for the stream has changed */
 
     PXC_STATUS_POWER_UID_ALREADY_REGISTERED=  -701,
     PXC_STATUS_POWER_UID_NOT_REGISTERED=      -702,
     PXC_STATUS_POWER_ILLEGAL_STATE=           -703,
     PXC_STATUS_POWER_PROVIDER_NOT_EXISTS=     -704,
-    PXC_STATUS_CAPTURE_CONFIG_ALREADY_SET=    -801, /** parameter cannot be changed since configuration for capturing has been already set */
+
+    PXC_STATUS_CAPTURE_CONFIG_ALREADY_SET=  -801, /** parameter cannot be changed since configuration for capturing has been already set */
+	PXC_STATUS_COORDINATE_SYSTEM_CONFLICT = -802,	/** Mismatched coordinate system between modules */
 
     /* warnings */
     PXC_STATUS_TIME_GAP=                101,   /** time gap in time stamps */

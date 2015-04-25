@@ -15,12 +15,12 @@ Copyright(c) 2013-2014 Intel Corporation. All Rights Reserved.
 #include "pxcemotion.h"
 #include "pxctracker.h"
 #include "pxchandmodule.h"
+#include "pxcblobmodule.h"
 #include "pxctouchlesscontroller.h"
 #include "pxc3dseg.h"
 #include "pxc3dscan.h"
-#if defined(SCENE_PERCEPTION)
 #include "pxcsceneperception.h"
-#endif
+
 
 /**
     This is the main interface for the SDK pipeline.
@@ -143,6 +143,24 @@ public:
     }
 
     /**
+        @brief    Return the captured sample for the blob module.
+        The captured sample is managed internally by the SenseManager. Do not release the sample.
+        @return The sample instance, or NULL if the captured sample is not available.
+    */
+    __inline PXCCapture::Sample* QueryBlobSample(void) {
+        return QuerySample(PXCBlobModule::CUID);
+    }
+
+    /**
+        @brief    Return the captured sample for the scene perception module.
+        The captured sample is managed internally by the SenseManager. Do not release the sample.
+        @return The sample instance, or NULL if the captured sample is not available.
+    */
+    __inline PXCCapture::Sample* QueryScenePerceptionSample(void) {
+        return QuerySample(PXCScenePerception::CUID);
+    }
+
+    /**
         @brief    Return the captured sample for the emotion module.
         The captured sample is managed internally by the SenseManager. Do not release the sample.
         @return The sample instance, or NULL if the captured sample is not available.
@@ -216,6 +234,17 @@ public:
     }
 
     /**
+        @brief    Return the blob module instance. Between AcquireFrame/ReleaseFrame, the function returns
+        NULL if the specified module hasn't completed processing the current frame of image data.
+        The instance is managed internally by the SenseManager. Do not release the instance.
+        @return The module instance.
+    */
+    __inline PXCBlobModule* QueryBlob(void) { 
+        PXCBase *instance=QueryModule(PXCBlobModule::CUID);
+        return instance?instance->QueryInstance<PXCBlobModule>():0;
+    }
+
+    /**
         @brief    Return the Touchless module instance. Between AcquireFrame/ReleaseFrame, the function returns
         NULL if the specified module hasn't completed processing the current frame of image data.
         The instance is managed internally by the SenseManager. Do not release the instance.
@@ -247,8 +276,7 @@ public:
         PXCBase *instance=QueryModule(PXC3DScan::CUID);
         return instance?instance->QueryInstance<PXC3DScan>():0; 
     }
-    
-#if defined(SCENE_PERCEPTION)
+
     /**
     @brief    Return the Scene Perception module instance. Between AcquireFrame/ReleaseFrame, the function returns
     NULL if the specified module hasn't completed processing the current frame of image data.
@@ -259,7 +287,6 @@ public:
         PXCBase *instance = QueryModule(PXCScenePerception::CUID);
         return instance ? instance->QueryInstance<PXCScenePerception>() : 0;
     }
-#endif    
 
     /**
         @brief    Initialize the SenseManager pipeline for streaming with callbacks. The application must 
@@ -291,12 +318,10 @@ public:
     virtual pxcStatus PXCAPI StreamFrames(pxcBool blocking)=0;
 
     /**
-        @brief    Stream frames from the capture module to the algorithm modules. The application must 
-        initialize the pipeline before calling this function. If blocking, the function blocks until
-        the streaming stops (upon any capture device error or any callback function returns any error.
-        If non-blocking, the function returns immediately while running streaming in a thread.
-        @param[in]    blocking      The blocking status.
-        @return PXC_STATUS_NO_ERROR        Successful execution.
+        @brief    This function returns the input device connection status during streaming.
+        The connection status is valid only in between the Init function and the Close function.
+        @return true        The input device is connected.
+        @return false       The input device is not connected.
     */
     virtual pxcBool PXCAPI IsConnected(void)=0;
 
@@ -308,8 +333,8 @@ public:
         the application calls ReleaseFrame.
         AcquireFrame/ReleaseFrame are not compatible with StreamFrames. Run the SenseManager in the pulling
         mode with AcquireFrame/ReleaseFrame, or the callback mode with StreamFrames.
-        @param[in]    ifall                If true, wait for all modules to complete processing the data.
-        @param[in]    timeout                The time out value in milliseconds.
+        @param[in]    ifall             If true, wait for all modules to complete processing the data.
+        @param[in]    timeout           The time out value in milliseconds.
         @return PXC_STATUS_NO_ERROR        Successful execution.
     */
     virtual pxcStatus PXCAPI AcquireFrame(pxcBool ifall, pxcI32 timeout)=0;
@@ -438,6 +463,19 @@ public:
     }
 
     /**
+        @brief    Enable the blob module in the pipeline.
+        @param[in] name        The optional module name.
+        @return PXC_STATUS_NO_ERROR        Successful execution.
+    */
+    __inline pxcStatus EnableBlob(pxcCHAR *name=0) {
+        PXCSession::ImplDesc mdesc;
+        memset(&mdesc,0,sizeof(mdesc));
+        mdesc.cuids[0]=PXCBlobModule::CUID;
+        if (name) wcscpy_s<sizeof(mdesc.friendlyName)/sizeof(pxcCHAR)>(mdesc.friendlyName, name);
+        return EnableModule(PXCBlobModule::CUID,&mdesc);
+    }
+
+    /**
         @brief    Enable the touchless controller module in the pipeline.
         @return PXC_STATUS_NO_ERROR        Successful execution.
     */
@@ -473,7 +511,6 @@ public:
         return EnableModule(PXC3DScan::CUID,&mdesc);
     }
 
-#if defined(SCENE_PERCEPTION)
     /**
     @brief    Enable the Scene Perception module in the pipeline.
     @return PXC_STATUS_NO_ERROR        Successful execution.
@@ -485,7 +522,6 @@ public:
         if (name) wcscpy_s<sizeof(mdesc.friendlyName) / sizeof(pxcCHAR)>(mdesc.friendlyName, name);
         return EnableModule(PXCScenePerception::CUID, &mdesc);
     }
-#endif
 
     /**
         @brief    Pause/Resume the execution of the specified module.
@@ -493,6 +529,15 @@ public:
         @param[in] pause        If true, pause the module. Otherwise, resume the module.
     */
     virtual void PXCAPI PauseModule(pxcUID mid, pxcBool pause)=0;
+
+	/**
+        @brief    Pause/Resume the execution of the Scene Perception module.
+        @param[in] pause        If true, pause the module. Otherwise, resume the module.
+    */
+	__inline void PauseScenePerception(pxcBool pause) { 
+		PauseModule(PXCScenePerception::CUID,pause); 
+	}
+
 
     /**
         @brief    Pause/Resume the execution of the face module.
@@ -518,13 +563,20 @@ public:
 		PauseModule(PXCTracker::CUID,pause); 
 	}
 
-
     /**
         @brief    Pause/Resume the execution of the hand module.
         @param[in] pause        If true, pause the module. Otherwise, resume the module.
     */
     __inline void PauseHand(pxcBool pause) {
         PauseModule(PXCHandModule::CUID,pause); 
+    }
+
+    /**
+        @brief    Pause/Resume the execution of the blob module.
+        @param[in] pause        If true, pause the module. Otherwise, resume the module.
+    */
+    __inline void PauseBlob(pxcBool pause) {
+        PauseModule(PXCBlobModule::CUID,pause); 
     }
 
     /**

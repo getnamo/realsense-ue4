@@ -4,7 +4,7 @@ INTEL CORPORATION PROPRIETARY INFORMATION
 This software is supplied under the terms of a license agreement or nondisclosure
 agreement with Intel Corporation and may not be copied or disclosed except in
 accordance with the terms of that agreement
-Copyright(c) 2011-2014 Intel Corporation. All Rights Reserved.
+Copyright(c) 2011-2015 Intel Corporation. All Rights Reserved.
 
 *******************************************************************************/
 /** @file pxccapture.h
@@ -16,6 +16,7 @@ Copyright(c) 2011-2014 Intel Corporation. All Rights Reserved.
 #include "pxcsyncpoint.h"
 #pragma warning(push)
 #pragma warning(disable:4351) /* new behavior of array initialization */
+#include <limits.h>
 class PXCCaptureDeviceExt;
 class PXCProjection;
 
@@ -26,6 +27,7 @@ class PXCCapture:public PXCBase {
 public:
     PXC_CUID_OVERWRITE(0x83F72A50);
     PXC_DEFINE_CONST(STREAM_LIMIT,8);
+	PXC_DEFINE_CONST(PROPERTY_VALUE_INVALID,SHRT_MAX);
     class Device;
 
     /** 
@@ -84,8 +86,10 @@ public:
     */
     enum DeviceModel {
         DEVICE_MODEL_GENERIC    = 0x00000000,    /* a generic device or unknown device */
-        DEVICE_MODEL_IVCAM      = 0x0020000E,    /* the Intel(R) RealSense(TM) 3D Camera */
-		DEVICE_MODEL_DS4		= 0x0020000F,    /* the Intel(R) RealSense(TM) DS4 Camera */
+        DEVICE_MODEL_F200       = 0x0020000E,    /* the Intel(R) RealSense(TM) 3D Camera, model F200 */
+        DEVICE_MODEL_IVCAM      = 0x0020000E,    /* deprecated: the Intel(R) RealSense(TM) 3D Camera, model F200 */
+		DEVICE_MODEL_R200		= 0x0020000F,    /* the Intel(R) RealSense(TM) DS4 Camera, model R200 */
+		DEVICE_MODEL_DS4		= 0x0020000F,    /* deprecated: the Intel(R) RealSense(TM) DS4 Camera, model R200 */
     };
 
     /** 
@@ -95,7 +99,9 @@ public:
     enum DeviceOrientation {
         DEVICE_ORIENTATION_ANY          = 0x0,  /* Unknown orientation */
         DEVICE_ORIENTATION_USER_FACING  = 0x1,  /* A user facing camera */
+		DEVICE_ORIENTATION_FRONT_FACING = 0x1,  /* A front facing camera */
         DEVICE_ORIENTATION_WORLD_FACING = 0x2,  /* A world facing camera */
+		DEVICE_ORIENTATION_REAR_FACING  = 0x2,  /* A rear facing camera */
     };
 
     /** 
@@ -211,6 +217,7 @@ public:
             Describes the power line compensation filter values.
         */
         enum PowerLineFrequency {
+			POWER_LINE_FREQUENC_INVALID         =   PROPERTY_VALUE_INVALID, /*Invalid value*/
             POWER_LINE_FREQUENCY_DISABLED       =   0,          /* Disabled power line frequency */
             POWER_LINE_FREQUENCY_50HZ           =   1,         /* 50HZ power line frequency */
             POWER_LINE_FREQUENCY_60HZ           =   2,         /* 60HZ power line frequency */
@@ -221,6 +228,7 @@ public:
             Describes the mirroring options.
         */
         enum MirrorMode {
+			MIRROR_MODE_INVALID				    =   PROPERTY_VALUE_INVALID, /*Invalid value*/
             MIRROR_MODE_DISABLED                =   0,          /* Disabled. The images are displayed as in a world facing camera.  */
             MIRROR_MODE_HORIZONTAL              =   1,          /* The images are horizontally mirrored as in a user facing camera. */
         };
@@ -230,6 +238,7 @@ public:
             Describes the IVCAM accuracy.
         */
         enum IVCAMAccuracy {
+			IVCAM_ACCURACY_INVALID			     =   PROPERTY_VALUE_INVALID, /*Invalid value*/
             IVCAM_ACCURACY_FINEST                =   1,         /* The finest accuracy: 9 patterns */
             IVCAM_ACCURACY_MEDIAN                =   2,         /* The median accuracy: 8 patterns (default) */
             IVCAM_ACCURACY_COARSE                =   3,         /* The coarse accuracy: 7 patterns */
@@ -275,11 +284,25 @@ public:
             /* Misc. Properties */
             PROPERTY_PROJECTION_SERIALIZABLE    =   3003,        /* pxcU32         R    The meta data identifier of the Projection instance serialization data. */
 
-            /* Device Specific Properties */
+            /* Device Specific Properties - IVCam */
             PROPERTY_IVCAM_LASER_POWER           = 0x10000,      /* pxcI32        RW    The laser power value from 0 (minimum) to 16 (maximum). */
             PROPERTY_IVCAM_ACCURACY              = 0x10001,      /* IVCAMAccuracy RW    The IVCAM accuracy value. */
 			PROPERTY_IVCAM_FILTER_OPTION         = 0x10003,      /* pxcI32        RW    The filter option (smoothing aggressiveness) ranged from 0 (close range) to 7 (far range). */
 			PROPERTY_IVCAM_MOTION_RANGE_TRADE_OFF= 0x10004,      /* pxcI32        RW    This option specifies the motion and range trade off. The value ranged from 0 (short exposure, range, and better motion) to 100 (long exposure, range). */
+
+            /* Device Specific Properties - DS */
+            PROPERTY_DS_CROP					 = 0x20000,      /* pxcBool       RW    Indicates whether to crop left and right images to match size of z image*/
+            PROPERTY_DS_EMITTER					 = 0x20001,		 /*	pxcBool	      RW    Enable or disable DS emitter*/
+            PROPERTY_DS_TEMPERATURE              = 0x20002,		 /* pxcF32        R     The temperture of the camera head in celsius */
+            PROPERTY_DS_DISPARITY_OUTPUT		 = 0x20003,		 /* pxcBool       RW    Switches the range output mode between distance (Z) and disparity (inverse distance)*/
+            PROPERTY_DS_DISPARITY_MULTIPLIER     = 0x20004,		 /* pxcI32        RW    Sets the disparity scale factor used when in disparity output mode. Default value is 32.*/
+            PROPERTY_DS_DISPARITY_SHIFT          = 0x20005,		 /* pxcI32        RW    Reduces both the minimum and maximum depth that can be computed. 
+                                                                                        Allows range to be computed for points in the near field which would otherwise be beyond the disparity search range.*/
+            PROPERTY_DS_MIN_MAX_Z				 = 0x20006,		 /* PXCRangeF32   RW    The minimum z and maximum z in Z units that will be output   */
+            PROPERTY_DS_COLOR_RECTIFICATION      = 0x20008,		 /* pxcBool       R     if true rectification is enabled to DS color*/
+            PROPERTY_DS_DEPTH_RECTIFICATION      = 0x20009,		 /* pxcBool       R     if true rectification is enabled to DS depth*/
+            PROPERTY_DS_LEFTRIGHT_EXPOSURE       = 0x2000A,		 /* pxcF32        RW    The depth stream exposure, in log base 2 seconds. */
+            PROPERTY_DS_LEFTRIGHT_GAIN           = 0x2000B,		 /* pxcI32        RW   The depth stream gain adjustment, with negative values darker, positive values brighter, and zero as normal. */
 
             /* Customized properties */
             PROPERTY_CUSTOMIZED=0x04000000,                        /* CUSTOMIZED properties */
@@ -292,7 +315,8 @@ public:
         enum StreamOption
         {
             STREAM_OPTION_ANY                       = 0,
-            STREAM_OPTION_DEPTH_PRECALCULATE_UVMAP  = 0x0001,
+            STREAM_OPTION_DEPTH_PRECALCULATE_UVMAP  = 0x0001,	/* A flag to ask the device to precalculate UVMap */
+			STREAM_OPTION_STRONG_STREAM_SYNC        = 0x0002,	/* A flag to ask the device to perform strong (HW-based) synchronization on the streams with this flag. */
         };
 
         /** 
@@ -473,15 +497,34 @@ public:
 			*/
 			virtual pxcStatus PXCAPI QueryPropertyInfo(Property /*label*/,PropertyInfo* /*propertyInfo*/ )=0;
 
+			/**
+				@reserved
+				Internal function. Do not use.
+			*/
+			virtual pxcStatus PXCAPI QueryPropertyAuto(Property /*label*/,pxcBool* /*ifauto*/ )=0;
+
+
+
 
     public:
 
-        /** 
+		/**
+			@brief Reset the device properties to their factory default values
+			@param[in] streamType	The stream type to reset properties, or STREAM_TYPE_ANY for all streams.
+        **/
+		virtual void PXCAPI ResetProperties(StreamType streams)=0;
+
+		/**
+			@brief Restore all device properties to what the application sets. Call this function upon receiving windows focus.
+        **/
+		virtual void PXCAPI RestorePropertiesUponFocus(void)=0;
+
+		/**
             @brief Get the color stream exposure value.
             @return The color stream exposure, in log base 2 seconds.
         */
         __inline pxcI32    QueryColorExposure(void) {
-            pxcF32 value=0;
+            pxcF32 value=PROPERTY_VALUE_INVALID;
             QueryProperty(PROPERTY_COLOR_EXPOSURE,&value);
             return (pxcI32)value;
         }
@@ -491,7 +534,7 @@ public:
             @return The color stream exposure property information
         */
         __inline PropertyInfo    QueryColorExposureInfo(void) {
-			PropertyInfo value={};
+			PropertyInfo value={{PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID},0, PROPERTY_VALUE_INVALID};
             QueryPropertyInfo(PROPERTY_COLOR_EXPOSURE,&value);
             return value;
         }
@@ -507,13 +550,23 @@ public:
         }
 
         /** 
-            @brief Set the color stream exposure value.
+            @brief Set the color stream auto exposure value.
              @param[in] auto1    True to enable auto exposure.
             @return PXC_STATUS_NO_ERROR             successful execution.
             @return PXC_STATUS_ITEM_UNAVAILABLE     the device property is not supported.
         */
         __inline pxcStatus SetColorAutoExposure(pxcBool auto1) {
             return SetPropertyAuto(PROPERTY_COLOR_EXPOSURE,auto1?1:0);
+			}
+
+		   /** 
+            @brief Query the color stream auto exposure value.
+            @return exposure isAuto value
+        */
+        __inline pxcBool QueryColorAutoExposure() {
+			pxcBool auto1=PROPERTY_VALUE_INVALID;
+			QueryPropertyAuto(PROPERTY_COLOR_EXPOSURE,&auto1);
+			return auto1;
         }
 
         /** 
@@ -521,7 +574,7 @@ public:
             @return The color stream brightness from  -10,000 (pure black) to 10,000 (pure white).
         */
         __inline pxcI32    QueryColorBrightness(void) {
-            pxcF32 value=0;
+            pxcF32 value = PROPERTY_VALUE_INVALID;
             QueryProperty(PROPERTY_COLOR_BRIGHTNESS,&value);
             return (pxcI32)value;
         }
@@ -531,7 +584,7 @@ public:
             @return The color stream brightness property information
         */
         __inline PropertyInfo    QueryColorBrightnessInfo(void) {
-			PropertyInfo value={};
+			PropertyInfo value={{PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID},0,PROPERTY_VALUE_INVALID};
             QueryPropertyInfo(PROPERTY_COLOR_BRIGHTNESS,&value);
             return value;
         }
@@ -551,7 +604,7 @@ public:
             @return The color stream contrast, from 0 to 10,000.
         */
         __inline pxcI32    QueryColorContrast(void) {
-            pxcF32 value=0;
+            pxcF32 value=PROPERTY_VALUE_INVALID;
             QueryProperty(PROPERTY_COLOR_CONTRAST,&value);
             return (pxcI32)value;
         }
@@ -561,7 +614,7 @@ public:
             @return The color stream contrast property information
         */
         __inline PropertyInfo    QueryColorContrastInfo(void) {
-			PropertyInfo value={};
+			PropertyInfo value={{PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID},0,PROPERTY_VALUE_INVALID};
             QueryPropertyInfo(PROPERTY_COLOR_CONTRAST,&value);
             return value;
         }
@@ -582,7 +635,7 @@ public:
             @return The color stream saturation, from 0 to 10,000.
         */
         __inline pxcI32    QueryColorSaturation(void) {
-            pxcF32 value=0;
+            pxcF32 value=PROPERTY_VALUE_INVALID;
             QueryProperty(PROPERTY_COLOR_SATURATION,&value);
             return (pxcI32)value;
         }
@@ -592,7 +645,7 @@ public:
             @return The color stream saturation property information
         */
         __inline PropertyInfo    QueryColorSaturationInfo(void) {
-			PropertyInfo value={};
+			PropertyInfo value={{PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID},0,PROPERTY_VALUE_INVALID};
             QueryPropertyInfo(PROPERTY_COLOR_SATURATION,&value);
             return value;
         }
@@ -612,7 +665,7 @@ public:
             @return The color stream hue, from -180,000 to 180,000 (representing -180 to 180 degrees.)
         */
         __inline pxcI32    QueryColorHue(void) {
-            pxcF32 value=0;
+            pxcF32 value=PROPERTY_VALUE_INVALID;
             QueryProperty(PROPERTY_COLOR_HUE,&value);
             return (pxcI32)value;
         }
@@ -622,7 +675,7 @@ public:
             @return The color stream Hue property information
         */
         __inline PropertyInfo    QueryColorHueInfo(void) {
-			PropertyInfo value={};
+			PropertyInfo value={{PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID},0,PROPERTY_VALUE_INVALID};
             QueryPropertyInfo(PROPERTY_COLOR_HUE,&value);
             return value;
         }
@@ -642,7 +695,7 @@ public:
             @return The color stream gamma, from 1 to 500.
         */
         __inline pxcI32    QueryColorGamma(void) {
-            pxcF32 value=0;
+            pxcF32 value=PROPERTY_VALUE_INVALID;
             QueryProperty(PROPERTY_COLOR_GAMMA,&value);
             return (pxcI32)value;
         }
@@ -653,7 +706,7 @@ public:
             @return The color stream gamma property information
         */
         __inline PropertyInfo    QueryColorGammaInfo(void) {
-			PropertyInfo value={};
+			PropertyInfo value={{PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID},0,PROPERTY_VALUE_INVALID};
             QueryPropertyInfo(PROPERTY_COLOR_GAMMA,&value);
             return value;
         }
@@ -673,7 +726,7 @@ public:
             @return The color stream balance, as a color temperature in degrees Kelvin.
         */
         __inline pxcI32    QueryColorWhiteBalance(void) {
-            pxcF32 value=0;
+            pxcF32 value=PROPERTY_VALUE_INVALID;
             QueryProperty(PROPERTY_COLOR_WHITE_BALANCE,&value);
             return (pxcI32)value;
         }
@@ -683,7 +736,7 @@ public:
             @return The color stream  white balance property information
         */
         __inline PropertyInfo    QueryColorWhiteBalanceInfo(void) {
-			PropertyInfo value={};
+			PropertyInfo value={{PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID},0,PROPERTY_VALUE_INVALID};
             QueryPropertyInfo(PROPERTY_COLOR_WHITE_BALANCE,&value);
             return value;
         }
@@ -708,12 +761,24 @@ public:
             return SetPropertyAuto(PROPERTY_COLOR_WHITE_BALANCE,auto1);
         }
 
+		
+
+		 /** 
+            @brief Get the color stream auto white balance mode.
+            @return White Balance isAuto value.
+        */
+        __inline pxcBool QueryColorAutoWhiteBalance() {
+			pxcBool auto1=false;
+			QueryPropertyAuto(PROPERTY_COLOR_WHITE_BALANCE,&auto1);
+			return auto1==1;
+        }
+
         /** 
             @brief Get the color stream sharpness value.
             @return The color stream sharpness, from 0 to 100.
         */
         __inline pxcI32    QueryColorSharpness(void) {
-            pxcF32 value=0;
+            pxcF32 value=PROPERTY_VALUE_INVALID;
             QueryProperty(PROPERTY_COLOR_SHARPNESS,&value);
             return (pxcI32)value;
         }
@@ -723,7 +788,7 @@ public:
             @return The color stream  Sharpness property information
         */
         __inline PropertyInfo    QueryColorSharpnessInfo(void) {
-			PropertyInfo value={};
+			PropertyInfo value={{PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID},0,PROPERTY_VALUE_INVALID};
             QueryPropertyInfo(PROPERTY_COLOR_SHARPNESS,&value);
             return value;
         }
@@ -743,7 +808,7 @@ public:
             @return The color stream back light compensation status from 0 to 4.
         */
         __inline pxcI32 QueryColorBackLightCompensation(void) {
-            pxcF32 value=0;
+            pxcF32 value=PROPERTY_VALUE_INVALID;
             QueryProperty(PROPERTY_COLOR_BACK_LIGHT_COMPENSATION,&value);
             return (pxcI32)value;
         }
@@ -753,7 +818,7 @@ public:
             @return The color stream  back light compensation property information
         */
         __inline PropertyInfo    QueryColorBackLightCompensationInfo(void) {
-			PropertyInfo value={};
+			PropertyInfo value={{PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID},0,PROPERTY_VALUE_INVALID};
             QueryPropertyInfo(PROPERTY_COLOR_BACK_LIGHT_COMPENSATION,&value);
             return value;
         }
@@ -773,7 +838,7 @@ public:
             @return The color stream gain adjustment, with negative values darker, positive values brighter, and zero as normal.
         */
         __inline pxcI32    QueryColorGain(void) {
-            pxcF32 value=0;
+            pxcF32 value=PROPERTY_VALUE_INVALID;
             QueryProperty(PROPERTY_COLOR_GAIN,&value);
             return (pxcI32)value;
         }
@@ -783,7 +848,7 @@ public:
             @return The color stream  gain property information
         */
         __inline PropertyInfo    QueryColorGainInfo(void) {
-			PropertyInfo value={};
+			PropertyInfo value={{PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID},0,PROPERTY_VALUE_INVALID};
             QueryPropertyInfo(PROPERTY_COLOR_GAIN,&value);
             return value;
         }
@@ -803,19 +868,31 @@ public:
             @return The power line frequency in Hz.
         */
         __inline PowerLineFrequency QueryColorPowerLineFrequency(void) {
-            pxcF32 value=0;
+            pxcF32 value=PROPERTY_VALUE_INVALID;
             QueryProperty(PROPERTY_COLOR_POWER_LINE_FREQUENCY,&value);
             return (PowerLineFrequency)(pxcI32)value;
         }
 
 		
+		 /** 
+			@brief Get the color stream power line frequency auto value.
+            @param[out] value    The power line frequency auto mode.
+            @return PowerLineFrequency isAuto value
+        */
+        __inline pxcBool QueryColorAutoPowerLineFrequency() {
+			pxcBool auto1=false;
+            QueryPropertyAuto(PROPERTY_COLOR_POWER_LINE_FREQUENCY,&auto1);
+			return auto1==1;
+        }
+
      
         /** 
             @brief Get the color stream power line frequency Property Info.
             @return The power line frequency default value.
         */
         __inline PowerLineFrequency QueryColorPowerLineFrequencyDefaultValue(void) {
-			PropertyInfo info={};
+
+			PropertyInfo info={{PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID},0,PROPERTY_VALUE_INVALID};
             QueryPropertyInfo(PROPERTY_COLOR_POWER_LINE_FREQUENCY,&info);
 			return (PowerLineFrequency)(pxcI32)info.defaultValue;
         }
@@ -830,12 +907,23 @@ public:
             return SetProperty(PROPERTY_COLOR_POWER_LINE_FREQUENCY,(pxcF32)value);
         }
 
+
+        /** 
+            @brief Set the color stream auto power line frequency.
+            @param[in] value    The power line frequency auto mode.
+            @return PXC_STATUS_NO_ERROR             successful execution.
+            @return PXC_STATUS_ITEM_UNAVAILABLE     the device property is not supported.
+        */
+        __inline pxcStatus SetColorAutoPowerLineFrequency(pxcBool auto1) {
+            return SetPropertyAuto(PROPERTY_COLOR_POWER_LINE_FREQUENCY,auto1);
+        }
+
         /** 
             @brief Get the color stream field of view.
             @return The color-sensor horizontal and vertical field of view parameters, in degrees. 
         */
         __inline PXCPointF32 QueryColorFieldOfView(void) {
-            PXCPointF32 value={};
+            PXCPointF32 value={PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID};
             QueryProperty(PROPERTY_COLOR_FIELD_OF_VIEW,&value.x);
             QueryProperty((Property)(PROPERTY_COLOR_FIELD_OF_VIEW+1),&value.y);
             return value;
@@ -846,7 +934,7 @@ public:
             @return The color-sensor focal length in pixels. The parameters vary with the resolution setting.
         */
         __inline PXCPointF32 QueryColorFocalLength(void) {
-            PXCPointF32 value={};
+            PXCPointF32 value={PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID};
             QueryProperty(PROPERTY_COLOR_FOCAL_LENGTH,&value.x);
             QueryProperty((Property)(PROPERTY_COLOR_FOCAL_LENGTH+1),&value.y);
             return value;
@@ -857,7 +945,7 @@ public:
             @return The color-sensor focal length in mm.
         */
         __inline pxcF32 QueryColorFocalLengthMM(void) {
-            pxcF32 value=0;
+            pxcF32 value=PROPERTY_VALUE_INVALID;
             QueryProperty(PROPERTY_COLOR_FOCAL_LENGTH_MM,&value);
 			return value;
         }
@@ -867,7 +955,7 @@ public:
             @return The color-sensor principal point in pixels. The parameters vary with the resolution setting.
         */
         __inline PXCPointF32 QueryColorPrincipalPoint(void) {
-            PXCPointF32 value={};
+            PXCPointF32 value={PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID};
             QueryProperty(PROPERTY_COLOR_PRINCIPAL_POINT,&value.x);
             QueryProperty((Property)(PROPERTY_COLOR_PRINCIPAL_POINT+1),&value.y);
             return value;
@@ -878,7 +966,7 @@ public:
             @return The special depth map value to indicate that the corresponding depth map pixel is of low-confidence.
         */
         __inline pxcU16 QueryDepthLowConfidenceValue(void) {
-            pxcF32 value=0;
+            pxcF32 value=PROPERTY_VALUE_INVALID;
             QueryProperty(PROPERTY_DEPTH_LOW_CONFIDENCE_VALUE,&value);
             return (pxcU16)value;
         }
@@ -888,7 +976,7 @@ public:
             @return The confidence threshold that is used to floor the depth map values. The range is from 0 to 15.
         */
         __inline pxcI16 QueryDepthConfidenceThreshold(void) {
-            pxcF32 value=0;
+            pxcF32 value=PROPERTY_VALUE_INVALID;
             QueryProperty(PROPERTY_DEPTH_CONFIDENCE_THRESHOLD,&value);
             return (pxcI16)value;
         }
@@ -898,7 +986,7 @@ public:
             @return The property information for the confidence threshold that is used to floor the depth map values. The range is from 0 to 15.
         */
         __inline PropertyInfo QueryDepthConfidenceThresholdInfo(void) {
-			PropertyInfo value={};
+			PropertyInfo value={{PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID},0,PROPERTY_VALUE_INVALID};
 			QueryPropertyInfo(PROPERTY_DEPTH_CONFIDENCE_THRESHOLD,&value);
 			return value;
         }
@@ -918,17 +1006,27 @@ public:
             @return The unit of depth values in micrometre.
         */
         __inline pxcF32 QueryDepthUnit(void) {
-            pxcF32 value=0;
+            pxcF32 value=PROPERTY_VALUE_INVALID;
             QueryProperty(PROPERTY_DEPTH_UNIT,&value);
             return value;
         }
+	
+        /** 
+		@brief Set the depth stream unit value.
+		@param[in] The unit of depth values in micrometre
+		@return PXC_STATUS_NO_ERROR             successful execution.
+		@return PXC_STATUS_ITEM_UNAVAILABLE     the device property is not supported.
+		*/
+		__inline pxcStatus SetDepthUnit(pxcF32 value) {
+			return SetProperty(PROPERTY_DEPTH_UNIT, value);
+		}
 	
         /** 
             @brief Get the depth stream field of view.
             @return The depth-sensor horizontal and vertical field of view parameters, in degrees. 
         */
         __inline PXCPointF32 QueryDepthFieldOfView(void) {
-            PXCPointF32 value={};
+            PXCPointF32 value={PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID};
             QueryProperty(PROPERTY_DEPTH_FIELD_OF_VIEW,&value.x);
             QueryProperty((Property)(PROPERTY_DEPTH_FIELD_OF_VIEW+1),&value.y);
             return value;
@@ -939,7 +1037,7 @@ public:
             @return The depth-sensor, sensing distance parameters, in millimeters.
         */
         __inline PXCRangeF32 QueryDepthSensorRange(void) {
-            PXCRangeF32 value={};
+            PXCRangeF32 value={PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID};
             QueryProperty(PROPERTY_DEPTH_SENSOR_RANGE,&value.min);
             QueryProperty((Property)(PROPERTY_DEPTH_SENSOR_RANGE+1),&value.max);
             return value;
@@ -950,7 +1048,7 @@ public:
             @return The depth-sensor focal length in pixels. The parameters vary with the resolution setting.
         */
         __inline PXCPointF32 QueryDepthFocalLength(void) {
-            PXCPointF32 value={};
+            PXCPointF32 value={PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID};
             QueryProperty(PROPERTY_DEPTH_FOCAL_LENGTH,&value.x);
             QueryProperty((Property)(PROPERTY_DEPTH_FOCAL_LENGTH+1),&value.y);
             return value;
@@ -961,7 +1059,7 @@ public:
             @return The depth-sensor focal length in mm.
         */
         __inline pxcF32 QueryDepthFocalLengthMM(void) {
-            pxcF32 value=0;
+            pxcF32 value=PROPERTY_VALUE_INVALID;
             QueryProperty(PROPERTY_DEPTH_FOCAL_LENGTH_MM,&value);
             return value;
         }
@@ -971,7 +1069,7 @@ public:
             @return The depth-sensor principal point in pixels. The parameters vary with the resolution setting.
         */
         __inline PXCPointF32 QueryDepthPrincipalPoint(void) {
-            PXCPointF32 value={};
+            PXCPointF32 value={PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID};
             QueryProperty(PROPERTY_DEPTH_PRINCIPAL_POINT,&value.x);
             QueryProperty((Property)(PROPERTY_DEPTH_PRINCIPAL_POINT+1),&value.y);
             return value;
@@ -982,7 +1080,7 @@ public:
             @return If true, allow resolution change and throw PXC_STATUS_STREAM_CONFIG_CHANGED.
         */
         __inline pxcBool QueryDeviceAllowProfileChange(void) {
-            pxcF32 value=0;
+            pxcF32 value=PROPERTY_VALUE_INVALID;
             QueryProperty(PROPERTY_DEVICE_ALLOW_PROFILE_CHANGE,&value);
             return value!=0;
         }
@@ -1004,7 +1102,7 @@ public:
              @return The mirror mode
         */
         __inline MirrorMode QueryMirrorMode(void) {
-            pxcF32 value=0;
+            pxcF32 value=PROPERTY_VALUE_INVALID;
             QueryProperty(PROPERTY_DEVICE_MIRROR,&value);
             return (MirrorMode)(pxcI32)value;
         }
@@ -1024,7 +1122,7 @@ public:
             @return The laser power value from 0 (minimum) to 16 (maximum).
         */
         __inline pxcI32 QueryIVCAMLaserPower(void) {
-            pxcF32 value=0;
+            pxcF32 value=PROPERTY_VALUE_INVALID;
             QueryProperty(PROPERTY_IVCAM_LASER_POWER,&value);
             return (pxcI32)value;
         }
@@ -1035,7 +1133,7 @@ public:
             @return The laser power proeprty information. 
         */
         __inline PropertyInfo QueryIVCAMLaserPowerInfo(void) {
-			PropertyInfo value={};
+			PropertyInfo value={{PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID},0,PROPERTY_VALUE_INVALID};
 			QueryPropertyInfo(PROPERTY_IVCAM_LASER_POWER,&value);
 			return value;
         }
@@ -1055,7 +1153,7 @@ public:
             @return The accuracy value
         */
         __inline IVCAMAccuracy QueryIVCAMAccuracy(void) {
-            pxcF32 value=0;
+            pxcF32 value=PROPERTY_VALUE_INVALID;
             QueryProperty(PROPERTY_IVCAM_ACCURACY,&value);
             return (IVCAMAccuracy)(pxcI32)value;
         }
@@ -1066,7 +1164,7 @@ public:
             @return The accuracy value property Information
         */
         __inline IVCAMAccuracy QueryIVCAMAccuracyDefaultValue(void) {
-			PropertyInfo info={};
+			PropertyInfo info={{PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID},0,PROPERTY_VALUE_INVALID};
             QueryPropertyInfo(PROPERTY_IVCAM_ACCURACY,&info);
             return (IVCAMAccuracy)(pxcI32)info.defaultValue;
         }
@@ -1086,9 +1184,8 @@ public:
 			@return The filter option value.
 		*/
 		__inline pxcI32 QueryIVCAMFilterOption(void) {
-			pxcF32 value=0;
-			pxcStatus sts=QueryProperty(PROPERTY_IVCAM_FILTER_OPTION,&value);
-			if (sts<PXC_STATUS_NO_ERROR) QueryProperty((Property)(PROPERTY_CUSTOMIZED+6), &value);
+			pxcF32 value=PROPERTY_VALUE_INVALID;
+			QueryProperty(PROPERTY_IVCAM_FILTER_OPTION,&value);
 			return (pxcI32)value;
 		}
 
@@ -1097,9 +1194,8 @@ public:
             @return The IVCAM Filter Option property information. 
         */
         __inline PropertyInfo QueryIVCAMFilterOptionInfo(void) {
-			PropertyInfo value={};
-			pxcStatus sts=QueryPropertyInfo(PROPERTY_IVCAM_FILTER_OPTION,&value);
-			if (sts<PXC_STATUS_NO_ERROR) QueryPropertyInfo((Property)(PROPERTY_CUSTOMIZED+6), &value);
+			PropertyInfo value={{PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID},0,PROPERTY_VALUE_INVALID};
+			QueryPropertyInfo(PROPERTY_IVCAM_FILTER_OPTION,&value);
 			return value;
         }
 
@@ -1111,7 +1207,6 @@ public:
 		*/
 		__inline pxcStatus SetIVCAMFilterOption(pxcI32 value) {
 			pxcStatus sts=SetProperty(PROPERTY_IVCAM_FILTER_OPTION, (pxcF32)value);
-			if (sts<PXC_STATUS_NO_ERROR) sts=SetProperty((Property)(PROPERTY_CUSTOMIZED+6), (pxcF32)value);
 			return sts;
 		}
 
@@ -1120,9 +1215,8 @@ public:
 			@return The motion range trade option.
 		*/
 		__inline pxcI32 QueryIVCAMMotionRangeTradeOff(void) {
-			pxcF32 value=0;
-			pxcStatus sts=QueryProperty(PROPERTY_IVCAM_MOTION_RANGE_TRADE_OFF,&value);
-			if (sts<PXC_STATUS_NO_ERROR) QueryProperty((Property)(PROPERTY_CUSTOMIZED+4), &value);
+			pxcF32 value=PROPERTY_VALUE_INVALID;
+			QueryProperty(PROPERTY_IVCAM_MOTION_RANGE_TRADE_OFF,&value);
 			return (pxcI32)value;
 		}
 
@@ -1132,9 +1226,8 @@ public:
             @return The IVCAM Filter Option property information. 
         */
         __inline PropertyInfo QueryIVCAMMotionRangeTradeOffInfo(void) {
-			PropertyInfo value={};
-			pxcStatus sts=QueryPropertyInfo(PROPERTY_IVCAM_MOTION_RANGE_TRADE_OFF,&value);
-			if (sts<PXC_STATUS_NO_ERROR) QueryPropertyInfo((Property)(PROPERTY_CUSTOMIZED+4), &value);
+			PropertyInfo value={{PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID},0,PROPERTY_VALUE_INVALID};
+			QueryPropertyInfo(PROPERTY_IVCAM_MOTION_RANGE_TRADE_OFF,&value);
 			return value;
         }
 
@@ -1146,8 +1239,231 @@ public:
 		*/
 		__inline pxcStatus SetIVCAMMotionRangeTradeOff(pxcI32 value) {
 			pxcStatus sts=SetProperty(PROPERTY_IVCAM_MOTION_RANGE_TRADE_OFF, (pxcF32)value);
-			if (sts<PXC_STATUS_NO_ERROR) sts=SetProperty((Property)(PROPERTY_CUSTOMIZED+4), (pxcF32)value);
 			return sts;
+        }
+
+        /**
+        @brief Get the DS Left Right Cropping status.
+        @return true if enabled
+        */
+        __inline pxcBool QueryDSLeftRightCropping(void) {
+            pxcF32 value = PROPERTY_VALUE_INVALID;
+            QueryProperty(PROPERTY_DS_CROP, &value);
+            return static_cast<pxcBool>(value);
+        }
+
+        /**
+        @brief enable\disable the DS Left Right Cropping.
+        @param[in] value    The setting value
+        @return PXC_STATUS_NO_ERROR             successful execution.
+        @return PXC_STATUS_ITEM_UNAVAILABLE     the device property is not supported.
+        */
+        __inline pxcStatus SetDSLeftRightCropping(pxcBool value) {
+            return SetProperty(PROPERTY_DS_CROP, (pxcF32)value);
+        }
+
+        /**
+        @brief Get the DS emitter status
+        @return true if enabled
+        */
+        __inline pxcBool QueryDSEmitterEnabled(void) {
+            pxcF32 value = PROPERTY_VALUE_INVALID;
+            QueryProperty(PROPERTY_DS_EMITTER, &value);
+            return static_cast<pxcBool>(value);
+        }
+
+        /**
+        @brief enable\disable the DS Emitter
+        @param[in] value    The setting value
+        @return PXC_STATUS_NO_ERROR             successful execution.
+        @return PXC_STATUS_ITEM_UNAVAILABLE     the device property is not supported.
+        */
+        __inline pxcStatus SetDSEnableEmitter(pxcBool value) {
+            return SetProperty(PROPERTY_DS_EMITTER, (pxcF32)value);
+        }
+        
+        /**
+        @brief Get The temperture of the camera head.
+        @return temperature in celsius.
+        */
+        __inline pxcF32    QueryDSTemperature(void) {
+            pxcF32 value = PROPERTY_VALUE_INVALID;
+            QueryProperty(PROPERTY_DS_TEMPERATURE, &value);
+            return value;
+        }
+
+        /**
+        @brief Get the DS Disparity (inverse distance) Output status
+        @return true if enabled
+        */
+        __inline pxcBool QueryDSDisparityOutputEnabled(void) {
+            pxcF32 value = PROPERTY_VALUE_INVALID;
+            QueryProperty(PROPERTY_DS_DISPARITY_OUTPUT, &value);
+            return static_cast<pxcBool>(value);
+        }
+
+        /**
+        @brief enable\disable DS Disparity Output, Switches the range output mode between distance (Z) and disparity (inverse distance)
+        @param[in] value    The setting value
+        @return PXC_STATUS_NO_ERROR             successful execution.
+        @return PXC_STATUS_ITEM_UNAVAILABLE     the device property is not supported.
+        */
+        __inline pxcStatus SetDSEnableDisparityOutput(pxcBool value) {
+            return SetProperty(PROPERTY_DS_DISPARITY_OUTPUT, (pxcF32)value);
+        }
+
+        /**
+        @brief Gets the disparity scale factor used when in disparity output mode. Default value is 32.
+        @return the disparity scale factor.
+        */
+        __inline pxcI32 QueryDSDisparityMultiplier(void) {
+            pxcF32 value = PROPERTY_VALUE_INVALID;
+            QueryProperty(PROPERTY_DS_DISPARITY_MULTIPLIER, &value);
+            return (pxcI32)value;
+        }
+
+        /**
+        @brief Sets the disparity scale factor used when in disparity output mode.
+        @param[in] value  the disparity scale factor.
+        @return PXC_STATUS_NO_ERROR             successful execution.
+        @return PXC_STATUS_ITEM_UNAVAILABLE     the device property is not supported.
+        */
+        __inline pxcStatus SetDSDisparityMultiplier(pxcI32 value) {
+            return SetProperty(PROPERTY_DS_DISPARITY_MULTIPLIER, (pxcF32)value);
+        }
+
+        /**
+        @brief Gets the disparity shift used when in disparity output mode.
+        @return the disparity shift.
+        */
+        __inline pxcI32 QueryDSDisparityShift(void) {
+            pxcF32 value = PROPERTY_VALUE_INVALID;
+            QueryProperty(PROPERTY_DS_DISPARITY_SHIFT, &value);
+            return (pxcI32)value;
+        }
+
+        /**
+        @brief Sets the disparity shift used when in disparity output mode.
+        @param[in] value  the disparity shift.
+        @return PXC_STATUS_NO_ERROR             successful execution.
+        @return PXC_STATUS_ITEM_UNAVAILABLE     the device property is not supported.
+        */
+        __inline pxcStatus SetDSDisparityShift(pxcI32 value) {
+            return SetProperty(PROPERTY_DS_DISPARITY_SHIFT, (pxcF32)value);
+        }
+
+        /**
+        @brief Get the current min & max limits of the z.
+        @return min, max z.
+        */
+        __inline PXCRangeF32 QueryDSMinMaxZ(void) {
+            PXCRangeF32 value = { PROPERTY_VALUE_INVALID, PROPERTY_VALUE_INVALID };
+            QueryProperty(PROPERTY_DS_MIN_MAX_Z, &value.min);
+            QueryProperty((Property)(PROPERTY_DS_MIN_MAX_Z + 1), &value.max);
+            return value;
+        }
+
+        /**
+        @brief Set the min & max limits of the z units.
+        @param[in] value    The setting value
+        @return PXC_STATUS_NO_ERROR             successful execution.
+        @return PXC_STATUS_ITEM_UNAVAILABLE     the device property is not supported.
+        */
+        __inline pxcStatus SetDSMinMaxZ(PXCRangeF32 value) {
+            pxcStatus sts = SetProperty(PROPERTY_DS_MIN_MAX_Z, (pxcF32)value.min);
+            if (sts == PXC_STATUS_NO_ERROR)
+                sts = SetProperty((Property)(PROPERTY_DS_MIN_MAX_Z + 1), (pxcF32)value.max);
+            return sts;
+		}
+
+        /**
+        @brief Get the color rectification status
+        @return true if enabled
+        */
+        __inline pxcBool QueryDSColorRectificationEnabled(void) {
+            pxcF32 value = PROPERTY_VALUE_INVALID;
+            QueryProperty(PROPERTY_DS_COLOR_RECTIFICATION, &value);
+            return static_cast<pxcBool>(value);
+        }
+
+		/**
+		@brief Get the depth rectification status
+		@return true if enabled
+		*/
+		__inline pxcBool QueryDSDepthRectificationEnabled(void) {
+			pxcF32 value = PROPERTY_VALUE_INVALID;
+			QueryProperty(PROPERTY_DS_DEPTH_RECTIFICATION, &value);
+			return static_cast<pxcBool>(value);
+		}
+
+		/**
+		@brief Get DS left & right streams exposure value.
+		@return DS left & right streams exposure, in log base 2 seconds.
+		*/
+		__inline pxcF32    QueryDSLeftRightExposure(void) {
+			pxcF32 value = PROPERTY_VALUE_INVALID;
+			QueryProperty(PROPERTY_DS_LEFTRIGHT_EXPOSURE, &value);
+			return (pxcF32)value;
+		}
+
+		/**
+		@brief Get DS left & right streams exposure property information.
+		@return The DS left & right streams exposure property information
+		*/
+		__inline PropertyInfo    QueryDSLeftRightExposureInfo(void) {
+			PropertyInfo value={{PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID},0,PROPERTY_VALUE_INVALID};
+			QueryPropertyInfo(PROPERTY_DS_LEFTRIGHT_EXPOSURE, &value);
+			return value;
+		}
+
+		/**
+		@brief Set DS left & right streams exposure value.
+		@param[in] value    DS left & right streams exposure value, in log base 2 seconds.
+		@return PXC_STATUS_NO_ERROR             successful execution.
+		@return PXC_STATUS_ITEM_UNAVAILABLE     the device property is not supported.
+		*/
+		__inline pxcStatus SetDSLeftRightExposure(pxcF32 value) {
+			return SetProperty(PROPERTY_DS_LEFTRIGHT_EXPOSURE, (pxcF32)value);
+		}
+
+		/**
+		@brief Set DS left & right streams exposure value.
+		@param[in] auto1    True to enable auto exposure.
+		@return PXC_STATUS_NO_ERROR             successful execution.
+		@return PXC_STATUS_ITEM_UNAVAILABLE     the device property is not supported.
+		*/
+		__inline pxcStatus SetDSLeftRightAutoExposure(pxcBool auto1) {
+			return SetPropertyAuto(PROPERTY_DS_LEFTRIGHT_EXPOSURE, auto1 ? 1 : 0);
+		}
+
+		/**
+		@brief Get DS left & right streams gain value.
+		@return DS left & right streams gain adjustment, with negative values darker, positive values brighter, and zero as normal.
+		*/
+		__inline pxcI32    QueryDSLeftRightGain(void) {
+			pxcF32 value = PROPERTY_VALUE_INVALID;
+			QueryProperty(PROPERTY_DS_LEFTRIGHT_GAIN, &value);
+			return (pxcI32)value;
+		}
+
+		/**
+		@brief Get DS left & right streams gain property information.
+		@return DS left & right streams  gain property information
+		*/
+		__inline PropertyInfo    QueryDSLeftRightGainInfo(void) {
+			PropertyInfo value={{PROPERTY_VALUE_INVALID,PROPERTY_VALUE_INVALID},0,PROPERTY_VALUE_INVALID};
+			QueryPropertyInfo(PROPERTY_DS_LEFTRIGHT_GAIN, &value);
+			return value;
+		}
+
+		/**
+		@brief Set DS left & right streams gain value.
+		@param[in] value    DS left & right streams gain adjustment, with negative values darker, positive values brighter, and zero as normal.
+		@return PXC_STATUS_NO_ERROR             successful execution.
+		@return PXC_STATUS_ITEM_UNAVAILABLE     the device property is not supported.
+		*/
+		__inline pxcStatus SetDSLeftRightGain(pxcI32 value) {
+			return SetProperty(PROPERTY_DS_LEFTRIGHT_GAIN, (pxcF32)value);
 		}
     };
 };

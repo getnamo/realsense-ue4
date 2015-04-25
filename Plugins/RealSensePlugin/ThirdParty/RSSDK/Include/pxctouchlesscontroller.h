@@ -43,13 +43,17 @@ public:
 			Configuration_Enable_Injection = 0x00000020, // Disable the injection of keyboar/mouse/touch events
 			Configuration_Edge_Scroll_Horizontally = 0x00000040, // Enable horizontal scrolling when pointer is on the edge of the screen
 			Configuration_Edge_Scroll_Vertically = 0x00000080, // Enable vertical scrolling  when pointer is on the edge of the screen
-			Configuration_Hide_Cursor_After_Touch_Injection = 0x00000100, // Should windows cursor be hidden after touch injection - other wise windows will make the cursor reappear
-			Configuration_Allow_Back = 0x00000200 //  Enable Back Gesture
+			Configuration_Allow_Back = 0x00000200, //  Enable Back Gesture
+			Configuration_Allow_Selection = 0x00000400 //  Enable Selection Gesture (Default value)
 		};
 
 		
         PXCHandModule*		handModule;   //the HandAnalysis module used by this module, dont set it when using SenseManager - this is just an output parameter
-        Configuration       config;   // An or value of configuration options
+        Configuration       config;   // An or value of configuration options - Default value is Configuration_Allow_Selection
+
+		ProfileInfo() : handModule(0),config(Configuration_Allow_Selection)
+		{
+		}
     };
    
     /** 
@@ -84,16 +88,16 @@ public:
 		{
 			UXEvent_StartZoom,			// the user start performing a zoom operation - pan my also be performed during zoom
 			UXEvent_Zoom,				// Fired while zoom operation is ongoing
-			UXEvent_EndZoom,			// User stoped zoomig
+			UXEvent_EndZoom,			// User stoped zooming
 			UXEvent_StartScroll,		// the user start performing a scroll or pan operation
 			UXEvent_Scroll,				// Fired while scroll operation is ongoing
 			UXEvent_EndScroll,			// User stoped scrolling (panning)
-			UXEvent_StartDraw,			// User started drawing
-			UXEvent_Draw,				// Fired while draw operation is ongoing
-			UXEvent_EndDraw,			// User finshed drawing
+			UXEvent_StartDraw,			// User started drawing - deprecated
+			UXEvent_Draw,				// Fired while draw operation is ongoing  - deprecated
+			UXEvent_EndDraw,			// User finshed drawing - deprecated
 			UXEvent_CursorMove,			// Cursor moved while not in any other mode
-			UXEvent_Select,				// oser selected a button
-			UXEvent_GotoStart,			// Got to windows 8 start screen
+			UXEvent_Select,				// user selected a button
+			UXEvent_GotoStart,			// Got to windows start screen
 			UXEvent_CursorVisible,		// Cursor turned visible
 			UXEvent_CursorNotVisible,	// Cursor turned invisible
 			UXEvent_ReadyForAction,		// The user is ready to perform a zoom or scroll operation
@@ -103,7 +107,11 @@ public:
 			UXEvent_HideMetaMenu,       // Hide Meta Menu
 			UXEvent_MetaPinch,			// When a pinch was detected while in meta mode
 			UXEvent_MetaOpenHand,       // When a pinch ends while in meta mode
-			UXEvent_Back				// User perform back gesture
+			UXEvent_Back,				// User perform back gesture
+			UXEvent_ScrollUp,			// Edge Scroll up was started by moving cursor to upper screen edge
+			UXEvent_ScrollDown,			// Edge Scroll down was started by moving cursor to down screen edge
+			UXEvent_ScrollLeft,			// Edge Scroll left was started by moving cursor to left screen edge
+			UXEvent_ScrollRight,		// Edge Scroll right was started by moving cursor to right screen edge
 		};
 		UXEventType type; // type of the event
 		PXCPoint3DF32 position; // position where event happen values are in rang [0,1]
@@ -208,19 +216,19 @@ public:
 	enum Action 
 		{
 			Action_None=0,		// No action will be injected
-			Action_LeftKeyPress,	// can be used to Go to the next item (Page/Slide/Photo etc.)
-			Action_RightKeyPress,	//  can be used to Go to the previouse item (Page/Slide/Photo etc.)
-			Action_BackKeyPress,	//  can be used to Go to the previouse item (Page/Slide/Photo etc.)
-			Action_PgUpKeyPress,	//  can be used to Go to the previouse item (Page/Slide/Photo etc.)
-			Action_PgDnKeyPress,	//  can be used to Go to the previouse item (Page/Slide/Photo etc.)
-			Action_VolumeUp,
-			Action_VolumeDown,
-			Action_Mute,
-			Action_NextTrack,
-			Action_PrevTrack,
-			Action_PlayPause,
-			Action_Stop,
-			Action_ToggleTabs,		// can be used to display tabs menu in Metro Internet Explorer
+			Action_LeftKeyPress,	// Inject left arrow key - can be used to go to the previous item (Page/Slide/Photo etc.)
+			Action_RightKeyPress,	// Inject right arrow key - can be used to Go to the next item (Page/Slide/Photo etc.)
+			Action_BackKeyPress,	// Inject backspace key - can be used to Go to the previous item (Page/Slide/Photo etc.)
+			Action_PgUpKeyPress,	// Inject page up key - can be used to Go to the previous item (Page/Slide/Photo etc.)
+			Action_PgDnKeyPress,	// Inject page down key - can be used to Go to the next item (Page/Slide/Photo etc.)
+			Action_VolumeUp,		// Inject "volume up" medai key
+			Action_VolumeDown,		// Inject "volume down" media key
+			Action_Mute,			// Inject "mute" media key
+			Action_NextTrack,		// Inject "next" media key
+			Action_PrevTrack,		// Inject "previous" media key
+			Action_PlayPause,		// Inject "play/pause" media key
+			Action_Stop,			// Inject "stop" media key
+			Action_ToggleTabs,		// Toggle tabs menu in Metro Internet Explorer
 		};
 
 	/**	
@@ -258,4 +266,28 @@ public:
 		@return PXC_STATUS_NO_ERROR if the mapping was successful, an error otherwise.
 	*/
 	virtual pxcStatus PXCAPI ClearAllGestureActionMappings(void) = 0;
+
+    /**
+		@brief Sets the scroll speed sensitivity
+		@return PXC_STATUS_NO_ERROR if the parameter were set correctly;
+	*/
+    virtual pxcStatus PXCAPI SetScrollSensitivity(float sensitivity) = 0;
+
+	/**
+	 @enum	PointerSensitivity
+	
+	 @brief	Values that represent Sensitivity level for the pointer movement
+	 */
+	enum PointerSensitivity
+	{		
+		PointerSensitivity_Smoothed, // most smoothed pointer setting
+		PointerSensitivity_Balanced, // medium setting 
+		PointerSensitivity_Sensitive // most sensetive pointer setting			
+	};
+
+	 /**
+		@brief Sets the pointer sensitivity
+		@return PXC_STATUS_NO_ERROR if the parameter was set correctly;
+	*/
+    virtual pxcStatus PXCAPI SetPointerSensitivity(PointerSensitivity sensitivity) = 0;
 };

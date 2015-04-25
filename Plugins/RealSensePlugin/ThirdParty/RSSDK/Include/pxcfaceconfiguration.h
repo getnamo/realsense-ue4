@@ -218,6 +218,37 @@ public:
 		virtual ~RecognitionConfiguration() {}
 	};
 	
+	class PulseConfiguration
+	{
+	public:
+		struct PulseProperties
+		{
+			pxcBool isEnabled;
+			pxcI32 maxTrackedFaces;
+			pxcI32 reserved[10];
+		};
+		PulseProperties properties;
+
+		/*
+ 			@brief Enables pulse estimator module.
+ 		*/
+		__inline void Enable()
+		{
+			properties.isEnabled = true;
+		}
+		
+		/*
+ 			@brief Disables pulse estimator module.
+ 		*/
+		__inline void Disable()
+		{
+			properties.isEnabled = false;
+		}
+
+	protected:
+		virtual ~PulseConfiguration() {}
+	};
+
 	enum TrackingModeType
 	{
 		FACE_MODE_COLOR,
@@ -230,7 +261,7 @@ public:
 	virtual ExpressionsConfiguration* PXCAPI QueryExpressions() = 0;
 	TrackingStrategyType strategy;
 
-	virtual RecognitionConfiguration* QueryRecognition() = 0;
+	virtual RecognitionConfiguration* PXCAPI QueryRecognition() = 0;
 
 	virtual pxcStatus PXCAPI SetTrackingMode(TrackingModeType trackingMode) = 0;
 	virtual TrackingModeType PXCAPI GetTrackingMode() = 0;
@@ -322,4 +353,6 @@ public:
 	* @brief Updates data to latest available configuration.
 	*/
 	virtual pxcStatus PXCAPI Update() = 0;
+
+	virtual PulseConfiguration* PXCAPI QueryPulse() = 0;
 };

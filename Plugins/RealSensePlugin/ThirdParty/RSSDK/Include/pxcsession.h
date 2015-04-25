@@ -22,6 +22,7 @@ class PXCSenseManager;
 class PXCCaptureManager;
 class PXCAudioSource;
 class PXCSession;
+class PXCPowerState;
 extern "C" PXCSession* PXCAPI PXCSession_Create(void);
 
 /**
@@ -55,7 +56,9 @@ public:
         IMPL_GROUP_OBJECT_RECOGNITION   =    0x00000001,    /* Object recognition algorithms */
         IMPL_GROUP_SPEECH_RECOGNITION   =    0x00000002,    /* Speech recognition algorithms */
         IMPL_GROUP_SENSOR               =    0x00000004,    /* I/O modules */
-        IMPL_GROUP_CORE                 =    0x80000000,    /* Core SDK modules */
+		IMPL_GROUP_PHOTOGRAPHY          =    0x00000008,    /* Photography algorithms */
+		IMPL_GROUP_UTILITIES            =    0x00000010,	/* Utility modules */
+		IMPL_GROUP_CORE                 =    0x80000000,    /* Core SDK modules */
         IMPL_GROUP_USER                 =    0x40000000,    /* User defined algorithms */
     };
 
@@ -76,9 +79,11 @@ public:
         IMPL_SUBGROUP_OBJECT_TRACKING       = 0x00000100,    /* object detection subgroup */
         IMPL_SUBGROUP_3DSEG                 = 0x00000200,    /* user segmentation subgroup */
         IMPL_SUBGROUP_3DSCAN                = 0x00000400,    /* mesh capture subgroup */
-#if defined(SCENE_PERCEPTION)
         IMPL_SUBGROUP_SCENE_PERCEPTION      = 0x00000800,    /* scene perception subgroup */
-#endif
+
+		/* Photography building blocks */
+		IMPL_SUBGROUP_ENHANCED_PHOTOGRAPHY  = 0x00001000,    /* scene perception subgroup */
+
         /* sensor building blocks */
         IMPL_SUBGROUP_AUDIO_CAPTURE         = 0x00000001,    /* audio capture subgroup */
         IMPL_SUBGROUP_VIDEO_CAPTURE         = 0x00000002,    /* video capture subgroup */
@@ -86,6 +91,16 @@ public:
         /* speech recognition building blocks */
         IMPL_SUBGROUP_SPEECH_RECOGNITION     = 0x00000001,    /* speech recognition subgroup */
         IMPL_SUBGROUP_SPEECH_SYNTHESIS       = 0x00000002,    /* speech synthesis subgroup */
+    };
+
+    /**
+        @enum CoordinateSystem
+        SDK supports several 3D coordinate systems for front and rear facing cameras.
+    */
+    enum CoordinateSystem {
+        COORDINATE_SYSTEM_REAR_DEFAULT      = 0x100,    /* Right-hand system: X right, Y up, Z to the user */
+        COORDINATE_SYSTEM_REAR_OPENCV       = 0x200,    /* Right-hand system: X right, Y down, Z to the world */
+        COORDINATE_SYSTEM_FRONT_DEFAULT     = 0x001,    /* Left-hand system: X left, Y up, Z to the user */
     };
 
     /** 
@@ -231,6 +246,16 @@ public:
 	}
 
     /** 
+		@brief Create an instance of the power manager.
+		@return The PXCPowerState instance.
+    */
+    __inline PXCPowerState *CreatePowerManager(void) {
+		PXCPowerState *pm=0;
+		CreateImpl(0, PXC_UID('P','M','G','G'), PXC_UID('P','W','M','G'), (void**)&pm);
+		return pm;
+	}
+
+    /** 
         @brief Return the module descriptor
         @param[in]  module          The module instance
         @param[out] desc            The module descriptor, to be returned.
@@ -290,6 +315,20 @@ public:
     virtual pxcStatus PXCAPI UnloadImplFromFile(pxcCHAR *moduleName)=0;
 
     /** 
+        @brief Set the camera coordinate system.
+        @param[in]  cs          The coordinate system.
+        @return PXC_STATUS_NO_ERROR    Successful execution.
+    */
+    virtual pxcStatus PXCAPI SetCoordinateSystem(CoordinateSystem cs)=0;
+
+    /** 
+        @brief Return current camera coordinate system (bit-mask of coordinate systems for front and rear cameras) 
+        @param[in]  cs          The coordinate system.
+        @return PXC_STATUS_NO_ERROR    Successful execution.
+    */
+    virtual CoordinateSystem PXCAPI QueryCoordinateSystem()=0;
+
+    /** 
         @brief Create an instance of the PXCSession interface.
         @return The PXCSession instance
     */
@@ -310,4 +349,11 @@ __inline static PXCSession::ImplGroup operator|(PXCSession::ImplGroup a, PXCSess
 */
 __inline static PXCSession::ImplSubgroup operator|(PXCSession::ImplSubgroup a, PXCSession::ImplSubgroup b) {
     return (PXCSession::ImplSubgroup)((int)a | (int)b);
+}
+
+/** 
+    A helper function for bitwise OR of two flags.
+*/
+__inline static PXCSession::CoordinateSystem operator|(PXCSession::CoordinateSystem a, PXCSession::CoordinateSystem b) {
+    return (PXCSession::CoordinateSystem)((int)a | (int)b);
 }

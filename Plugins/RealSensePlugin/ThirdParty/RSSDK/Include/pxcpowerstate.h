@@ -36,6 +36,12 @@ public:
     /* Try to set power state of all used devices, all streams, application should call 
        QueryStream to check if the desired state was set */
     virtual pxcStatus PXCAPI SetState(State state)=0;
+
+	/* Sets inactivity interval */ 
+	virtual pxcStatus PXCAPI SetInactivityInterval(pxcI32 timeInSeconds)=0;
+
+	/* Returns inactivity interval */
+	virtual pxcI32    PXCAPI QueryInactivityInterval()=0;
 };
 
 

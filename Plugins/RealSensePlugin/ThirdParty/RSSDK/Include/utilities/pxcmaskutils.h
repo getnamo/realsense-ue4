@@ -4,7 +4,7 @@ INTEL CORPORATION PROPRIETARY INFORMATION
 This software is supplied under the terms of a license agreement or nondisclosure
 agreement with Intel Corporation and may not be copied or disclosed except in
 accordance with the terms of that agreement
-Copyright(c) 2011-2014 Intel Corporation. All Rights Reserved.
+Copyright(c) 2011-2015 Intel Corporation. All Rights Reserved.
 
 *******************************************************************************/
 /** @file PXCMaskUtils.h
@@ -22,7 +22,7 @@ Copyright(c) 2011-2014 Intel Corporation. All Rights Reserved.
 	Inner contour lines (i.e. "holes" in the blob) are defined by an array of clock-wise points.
 	The outer contour line (i.e. the external border) is defined by an array of counter-clock-wise points.
 */
-class PXCContourExtractor: public PXCBase {
+class __declspec(deprecated("Deprecated. Use PXCBlobModule instead")) PXCContourExtractor: public PXCBase {
 public:
 
 	PXC_CUID_OVERWRITE(0x98fc2453);
@@ -105,7 +105,7 @@ public:
 	The maximal number of blobs that can be extracted is 2.
 	The order of the blobs will be from the largest to the smallest (in number of pixels)
 */
-class PXCBlobExtractor: public PXCBase {
+class __declspec(deprecated("Deprecated. Use PXCBlobModule instead")) PXCBlobExtractor: public PXCBase {
 public:
 
 	PXC_CUID_OVERWRITE(0xa52305bc);

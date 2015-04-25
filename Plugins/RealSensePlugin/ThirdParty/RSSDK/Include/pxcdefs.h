@@ -53,6 +53,11 @@ struct PXCRectI32 {
     pxcI32 x, y, w, h;
 };
 
+/** A rectangle type defined with pxcF32 values */
+struct PXCRectF32 {
+    pxcF32 x, y, w, h;
+};
+
 /** A type representing an two dimensional extent defined with pxcI32 values */
 struct PXCSizeI32 {
     pxcI32 width, height;
@@ -81,6 +86,11 @@ struct PXCPoint3DF32 {
 /** A type representing a four-dimensional point or vector, for instance quaternion */
 struct PXCPoint4DF32 {
     pxcF32 x, y, z, w;
+};
+
+/** A type representing a 3d box with pxcF32 values */
+struct PXCBox3DF32 {
+	PXCPoint3DF32 centerOffset, dimension;
 };
 
 /** This macro constructs a pxcUID given four byte values.  The arguments will

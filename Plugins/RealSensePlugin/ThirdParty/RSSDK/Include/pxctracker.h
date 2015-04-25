@@ -17,6 +17,8 @@ Defines the PXCTracker interface, which programs may use for 3D tracking.
 #pragma warning(push)
 #pragma warning(disable:4201) /* nameless structs/unions */
 
+class PXCTrackerUtils;
+
 /**
 This class defines a standard interface for 3D tracking algorithms. 
 */
@@ -67,7 +69,7 @@ public:
 	struct TrackingValues {
 		ETrackingState			state;			///< The state of the tracking values
 
-		PXCPoint3DF32           translation;	///< Translation component of the pose
+		PXCPoint3DF32           translation;	///< Translation component of the pose in the camera coordinate system
 		PXCPoint4DF32           rotation;		///< Rotation component of the pose
 
 		/** 
@@ -86,9 +88,11 @@ public:
 		pxcCHAR				additionalValues[256];      ///< Extra space for information provided by a sensor that cannot be expressed with translation and rotation properly.
 		pxcCHAR				sensor[256];                ///< The sensor that provided the values
 
-		pxcI32				reserved[32];               // 0 - reserved for module specific parameters
-	};
+		PXCPointF32			translationImage;			///< The translation component of the pose projected onto the color image, in pixels
 
+		pxcI32				reserved[30];               // 0 - reserved for module specific parameters
+	};
+	
 	/// Returns TRUE if the current state is actively tracking (valid pose information is available)
 	static pxcBool __inline PXCAPI IsTracking(ETrackingState state)
 	{
@@ -102,10 +106,9 @@ public:
 	* Add a 2D reference image for tracking an object
 	* \param filename: path to image file
 	* \param[out] cosID: coordinate system ID of added target
-	* \param widthMM: image width in mm (optional)
-	* \param heightMM: image height in mm (optional)
-	* \param qualityThreshold: minimal similarity measure [0..1] that has to be fulfilled for
-	*                          the image or one of its sub-patches.
+	* \param widthMM: width of the physical target in mm (optional). Only used to improve the mm unit accuracy in RGB tracking.
+	* \param heightMM: width of the physical target height in mm (optional). Only used to improve the mm unit accuracy in RGB tracking.
+	* \param qualityThreshold: minimal similarity [0-1] that needs to be met for the image to be reported as tracked
 	*/
 	virtual pxcStatus PXCAPI Set2DTrackFromFile(const pxcCHAR *filename, pxcUID& cosID, pxcF32 widthMM, pxcF32 heightMM, pxcF32 qualityThreshold)=0;
 
@@ -120,10 +123,9 @@ public:
 	* Add a 2D reference image for tracking an object
 	* \param image: the image instance
 	* \param[out] cosID: coordinate system ID of added target
-	* \param widthMM: image width in mm (optional)
-	* \param heightMM: image height in mm (optional)
-	* \param qualityThreshold: minimal similarity measure [0..1] that has to be fulfilled for
-	*                          the image or one of its sub-patches.
+	* \param widthMM: width of the physical target in mm (optional). Only used to improve the mm unit accuracy in RGB tracking.
+	* \param heightMM: width of the physical target height in mm (optional). Only used to improve the mm unit accuracy in RGB tracking.
+	* \param qualityThreshold: minimal similarity [0-1] that needs to be met for the image to be reported as tracked
 	*/
 	virtual pxcStatus PXCAPI Set2DTrackFromImage(PXCImage *image, pxcUID& cosID, pxcF32 widthMM, pxcF32 heightMM, pxcF32 qualityThreshold)=0;
 
@@ -179,11 +181,11 @@ public:
 
 	/**
 	* Return information for a particular coordinate system ID.  This value can be returned from Set2DTrackFromFile(),
-	* Set2DTrackFromImage(), or Set3DTrack().  coordinate system IDs for Set3DInstantTrack() are generated dynamically as
-	* targets that are determined in the scene.
+	* Set2DTrackFromImage(), or Set3DTrack().  Coordinate system IDs for Set3DInstantTrack() are generated dynamically as
+	* targets are determined in the scene.
 	*
 	* \param cosID: The coordinate system ID to return the status for
-	* \param outTrackingValues: The returned tracking values. the user needs to manage the mapping between the cosIDs and targets in loaded.
+	* \param outTrackingValues: The returned tracking values
 	*/
 	virtual pxcStatus PXCAPI QueryTrackingValues(pxcUID cosID, TrackingValues& outTrackingValues)=0;	
 
@@ -207,10 +209,9 @@ public:
 	* Add a 2D reference image for tracking an object
 	* \param filename: path to image file
 	* \param[out] cosID: coordinate system ID of added target
-	* \param widthMM: image width in mm (optional)
-	* \param heightMM: image height in mm (optional)
-	* \param qualityThreshold: minimal similarity measure [0..1] that has to be fulfilled for
-	*                          the image or one of its sub-patches.
+	* \param widthMM: width of the physical target in mm (optional). Only used to improve the mm unit accuracy in RGB tracking.
+	* \param heightMM: width of the physical target height in mm (optional). Only used to improve the mm unit accuracy in RGB tracking.
+	* \param qualityThreshold: minimal similarity [0-1] that needs to be met for the image to be reported as tracked
 	* \param extensible: Use features from the environment to improve tracking
 	*/
 	__inline pxcStatus Set2DTrackFromFile(const pxcCHAR *filename, pxcUID& cosID, pxcF32 widthMM, pxcF32 heightMM, pxcF32 qualityThreshold, pxcBool extensible) {
@@ -235,10 +236,9 @@ public:
 	* Add a 2D reference image for tracking an object
 	* \param image: the image instance
 	* \param[out] cosID: coordinate system ID of added target
-	* \param widthMM: image width in mm (optional)
-	* \param heightMM: image height in mm (optional)
-	* \param qualityThreshold: minimal similarity measure [0..1] that has to be fulfilled for
-	*                          the image or one of its sub-patches.
+	* \param widthMM: width of the physical target in mm (optional). Only used to improve the mm unit accuracy in RGB tracking.
+	* \param heightMM: width of the physical target height in mm (optional). Only used to improve the mm unit accuracy in RGB tracking.
+	* \param qualityThreshold: minimal similarity [0-1] that needs to be met for the image to be reported as tracked
 	* \param extensible: Use features from the environment to improve tracking
 	*/
 	__inline pxcStatus Set2DTrackFromImage(PXCImage *image, pxcUID& cosID, pxcF32 widthMM, pxcF32 heightMM, pxcF32 qualityThreshold, pxcBool extensible) {
@@ -251,7 +251,7 @@ public:
 	* \param[out] cosID: coordinate system ID of added target
 	* \param extensible: Use features from the environment to improve tracking
 	*/
-	__inline pxcStatus Set2DTrackFromImage(PXCImage *image, pxcUID& cosID, pxcBool extensible) { return Set2DTrackFromImage(image, cosID, 0.f, 0.f, 0.8f); }
+	__inline pxcStatus Set2DTrackFromImage(PXCImage *image, pxcUID& cosID, pxcBool extensible) { return Set2DTrackFromImage(image, cosID, 0.f, 0.f, 0.8f, extensible); }
 
 protected:
 
@@ -295,4 +295,21 @@ public:
 	__inline pxcStatus Set3DInstantTrack(pxcBool egoMotion, pxcI32 framesToSkip) {
 		return Set3DInstantTrackExt(egoMotion, framesToSkip);
 	}
+
+	/**
+	* Return the \c PXCTrackerUtils instance which may be used to configure advanced tracking features,
+	* and perform 3D map creation tasks.
+	*/
+	virtual PXCTrackerUtils* QueryTrackerUtils()=0;
+
+	/**
+	*	Specify a region of interest (ROI) for use when processing images during tracking and map creation.
+	*	Only pixels within the ROI rectangle are used, for example to remove a cluttered background.
+	*
+	*	Specifying a width or height of 0 will remove the ROI and use the full image. The entire rectangle
+	*   must lie inside of the color image boundaries.
+	*	
+	*	\param roi: The rectangle region of interest to be considered on subsequent frames
+	*/
+	virtual pxcStatus PXCAPI SetRegionOfInterest(const PXCRectI32& roi)=0;
 };
