@@ -14,7 +14,7 @@
 #include "RealSenseHand.h"
 #include "RealSenseInterface.h"
 
-#define PLUGIN_VERSION "0.1.1"
+#define PLUGIN_VERSION "0.1.2"
 
 
 IMPLEMENT_MODULE(FRealSensePlugin, RealSensePlugin)
