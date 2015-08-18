@@ -11,13 +11,14 @@ As per RSSDK, currently only supports Windows 8 x64.
 
 ##How to install it##
 
-1. Create new or open a project. 
-2. Browse to your project root (typically found at *Documents/Unreal Projects/{Your Project Root}*)
-3. Copy *Plugins* folder into your Project root.
-4. Copy *Binaries* folder into your Project root.
-5. Restart the Editor and open your project again.
-6. Select Window->Plugins. Click on Installed and you should see a category called Input and a plugin called RealSense now available. It should be automatically enabled, if not, Select Enabled. The Editor will warn you to restart, click restart.
-7. The plugin should be enabled and ready to use.
+1. Download [prerequisites](https://software.intel.com/en-us/intel-realsense-sdk/download): [RealSense Runtime - Direct Link](http://registrationcenter-download.intel.com/akdlm/irc_nas/7787/intel_rs_sdk_runtime_websetup_6.0.21.6598.exe)
+2. Create new or open a project. 
+3. Browse to your project root (typically found at *Documents/Unreal Projects/{Your Project Root}*)
+4. Copy *Plugins* folder into your Project root.
+5. Copy *Binaries* folder into your Project root.
+6. Restart the Editor and open your project again.
+7. Select Window->Plugins. Click on Installed and you should see a category called Input and a plugin called RealSense now available. It should be automatically enabled, if not, Select Enabled. The Editor will warn you to restart, click restart.
+8. The plugin should be enabled and ready to use.
 
 ##How to Use - Blueprint Quick Setup##
 <ol>
