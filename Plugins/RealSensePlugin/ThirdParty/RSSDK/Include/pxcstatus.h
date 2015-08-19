@@ -55,11 +55,13 @@ enum pxcStatus {
 
     PXC_STATUS_CAPTURE_CONFIG_ALREADY_SET=  -801, /** parameter cannot be changed since configuration for capturing has been already set */
 	PXC_STATUS_COORDINATE_SYSTEM_CONFLICT = -802,	/** Mismatched coordinate system between modules */
+	PXC_STATUS_NOT_MATCHING_CALIBRATION = -803,    /** calibration values not matching*/
 
     /* warnings */
-    PXC_STATUS_TIME_GAP=                101,   /** time gap in time stamps */
-    PXC_STATUS_PARAM_INPLACE=           102,   /** the same parameters already defined */
-    PXC_STATUS_DATA_NOT_CHANGED=        103,   /** Data not changed (no new data available)*/
-    PXC_STATUS_PROCESS_FAILED=          104,   /** Module failure during processing */
-    PXC_STATUS_VALUE_OUT_OF_RANGE=      105    /** Data value(s) out of range*/
+    PXC_STATUS_TIME_GAP=                 101,   /** time gap in time stamps */
+    PXC_STATUS_PARAM_INPLACE=            102,   /** the same parameters already defined */
+    PXC_STATUS_DATA_NOT_CHANGED=         103,   /** Data not changed (no new data available)*/
+    PXC_STATUS_PROCESS_FAILED=           104,   /** Module failure during processing */
+    PXC_STATUS_VALUE_OUT_OF_RANGE=       105,   /** Data value(s) out of range*/
+	PXC_STATUS_DATA_PENDING=             106    /** Not all data was copied, more data is available for fetching*/
 };

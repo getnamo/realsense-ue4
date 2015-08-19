@@ -4,7 +4,7 @@ INTEL CORPORATION PROPRIETARY INFORMATION
 This software is supplied under the terms of a license agreement or nondisclosure
 agreement with Intel Corporation and may not be copied or disclosed except in
 accordance with the terms of that agreement
-Copyright(c) 2014 Intel Corporation. All Rights Reserved.
+Copyright(c) 2014-2015 Intel Corporation. All Rights Reserved.
 
 *******************************************************************************/
 #pragma once
@@ -23,6 +23,7 @@ public:
         LEVEL_INFO  = 20000,
         LEVEL_DEBUG = 10000,
         LEVEL_TRACE =  5000,
+        LEVEL_VERBOSE =  2500,
     };
 
     enum ConfigMode {

@@ -20,6 +20,7 @@ Copyright(c) 2013-2014 Intel Corporation. All Rights Reserved.
 #include "pxc3dseg.h"
 #include "pxc3dscan.h"
 #include "pxcsceneperception.h"
+#include "pxcenhancedvideo.h"
 
 
 /**
@@ -178,6 +179,14 @@ public:
 		return QuerySample(PXCTracker::CUID);
 	}
 
+	/**
+		@brief	  Return the captured sample for the enhanced Videography module.
+		The captured sample is managed internally by the SenseManager. Do not release the sample.
+		@return The sample instance, or NULL if the captured sample is not available.
+	*/
+	__inline const PXCCapture::Sample* QueryEnhancedVideoSample(void) {
+		return QuerySample(PXCEnhancedVideo::CUID);
+	}
 
     /**
         @brief    Return the module instance. Between AcquireFrame/ReleaseFrame, the function returns
@@ -244,6 +253,7 @@ public:
         return instance?instance->QueryInstance<PXCBlobModule>():0;
     }
 
+
     /**
         @brief    Return the Touchless module instance. Between AcquireFrame/ReleaseFrame, the function returns
         NULL if the specified module hasn't completed processing the current frame of image data.
@@ -287,6 +297,17 @@ public:
         PXCBase *instance = QueryModule(PXCScenePerception::CUID);
         return instance ? instance->QueryInstance<PXCScenePerception>() : 0;
     }
+
+	 /**
+		@brief	Return the Enhanced Videography module instance. Between AcquireFrame/ReleaseFrame, the function returns
+		NULL if the specified module hasn't completed processing the current frame of image data.
+		The instance is managed internally by the SenseManager. Do not release the instance.
+		@return The module instance.
+	*/
+	__inline PXCEnhancedVideo* QueryEnhancedVideo(void) { 
+		PXCBase *instance=QueryModule(PXCEnhancedVideo::CUID);
+		return instance?instance->QueryInstance<PXCEnhancedVideo>():0; 
+	}
 
     /**
         @brief    Initialize the SenseManager pipeline for streaming with callbacks. The application must 
@@ -523,6 +544,17 @@ public:
         return EnableModule(PXCScenePerception::CUID, &mdesc);
     }
 
+	/**
+		@brief	Enable the Enhanced Videogrphy module in the pipeline.
+		@return PXC_STATUS_NO_ERROR		Successful execution.
+	*/
+	__inline pxcStatus EnableEnhancedVideo(void) {
+		PXCSession::ImplDesc mdesc;
+		memset(&mdesc,0,sizeof(mdesc));
+		mdesc.cuids[0]=PXCEnhancedVideo::CUID;
+		return EnableModule(PXCEnhancedVideo::CUID,&mdesc);
+	}
+	
     /**
         @brief    Pause/Resume the execution of the specified module.
         @param[in] mid          The module identifier. This is usually the interface identifier.
@@ -594,6 +626,14 @@ public:
     __inline void Pause3DSeg(pxcBool pause) {
         PauseModule(PXC3DSeg::CUID,pause);
     }
+
+	/**
+		@brief	Pause/Resume the execution of the Enhanced Videography module.
+		@param[in] pause	If true, pause the module. Otherwise, resume the module.
+	*/
+    __inline void PauseEnhancedVideo(pxcBool pause) {
+		PauseModule(PXCEnhancedVideo::CUID,pause); 
+	}
 
     /**
         @brief    Create an instance of the PXCSenseManager interface.

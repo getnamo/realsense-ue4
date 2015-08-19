@@ -2,8 +2,8 @@
     "FileVersion" : 3,
 	
 	"FriendlyName" : "Real Sense Plugin",
-	"Version" : 3,
-	"VersionName" : "0.1.2",
+	"Version" : 4,
+	"VersionName" : "0.1.3",
 	"CreatedBy" : "Getnamo",
 	"CreatedByURL" : "http://syntheticinsights.com",
 	"EngineVersion" : "4.8+",

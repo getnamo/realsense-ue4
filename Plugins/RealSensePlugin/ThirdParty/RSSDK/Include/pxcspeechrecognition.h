@@ -113,7 +113,7 @@ public:
     struct ProfileInfo {
         pxcCHAR         speaker[128];   /** The optional speaker name for adaptation */
         LanguageType    language;       /** The supported language */
-        pxcI32          endOfSentence;  /** The length of end of sentence silence in ms */
+        pxcI32          endOfSentence;  /** The length of end of sentence silence in ms: 100-10000 */
         pxcI32          threshold;      /** The recognition confidence threshold: 0-100 */
         pxcI32          reserved[13];
     };

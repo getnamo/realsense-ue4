@@ -15,8 +15,8 @@ Copyright(c) 2014 Intel Corporation. All Rights Reserved.
 class PXC3DSeg : public PXCBase
 {
 public:
-    /// Allocate and return a copy of the module's most recent segmented image.
-    /// The returned object's Release method can be used to deallocate it.
+    /// Return a reference to the most recent segmented image.
+    /// The returned object's Release method can be used to release the reference.
     virtual PXCImage* PXCAPI AcquireSegmentedImage(void)=0;
 
     PXC_CUID_OVERWRITE(PXC_UID('S', 'G', 'I', '1'));
@@ -45,6 +45,8 @@ public:
     /// A subsequent call will replace the previously registered handler object.
     /// Subscribe(NULL) to unsubscribe.
     virtual void PXCAPI Subscribe(AlertHandler* handler)=0;
+
+	virtual pxcStatus PXCAPI SetFrameSkipInterval(pxcI32 skipInterval)=0;
 };
 #endif
 

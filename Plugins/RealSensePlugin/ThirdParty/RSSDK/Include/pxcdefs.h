@@ -63,6 +63,11 @@ struct PXCSizeI32 {
     pxcI32 width, height;
 };
 
+/** A type representing an three dimensional extent defined with pxcF32 values */
+struct PXCSize3DF32 {
+    pxcF32 width, height, depth;
+};
+
 /** A type representing a two dimensional point defined with pxcF32 values */
 struct PXCPointF32 {
     pxcF32 x, y;

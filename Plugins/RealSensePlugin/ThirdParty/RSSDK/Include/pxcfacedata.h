@@ -8,7 +8,7 @@ Copyright(c) 2011-2014 Intel Corporation. All Rights Reserved.
 
 *******************************************************************************/
 #pragma once
-#include "pxcfacemodule.h"
+#include "pxcbase.h"
 
 class PXCFaceData : public PXCBase 
 {
@@ -211,31 +211,33 @@ public:
 		enum FaceExpression
 		{
 			EXPRESSION_BROW_RAISER_LEFT = 0,
-			EXPRESSION_BROW_RAISER_RIGHT,   
-			EXPRESSION_BROW_LOWERER_LEFT,   
-			EXPRESSION_BROW_LOWERER_RIGHT,  
+			EXPRESSION_BROW_RAISER_RIGHT = 1,
+			EXPRESSION_BROW_LOWERER_LEFT = 2,
+			EXPRESSION_BROW_LOWERER_RIGHT = 3,
 
-			EXPRESSION_SMILE,
-			EXPRESSION_KISS,
-			EXPRESSION_MOUTH_OPEN,
+			EXPRESSION_SMILE = 4,
+			EXPRESSION_KISS = 5,
+			EXPRESSION_MOUTH_OPEN = 6,
 
-			EXPRESSION_EYES_CLOSED_LEFT, 
-			EXPRESSION_EYES_CLOSED_RIGHT,
+			EXPRESSION_EYES_CLOSED_LEFT = 7,
+			EXPRESSION_EYES_CLOSED_RIGHT = 8,
 
-			EXPRESSION_HEAD_TURN_LEFT, 
-			EXPRESSION_HEAD_TURN_RIGHT,
-			EXPRESSION_HEAD_UP, 
-			EXPRESSION_HEAD_DOWN,
-			EXPRESSION_HEAD_TILT_LEFT,
-			EXPRESSION_HEAD_TILT_RIGHT,
+			/* Deprecated API */
+			EXPRESSION_HEAD_TURN_LEFT = 9,
+			EXPRESSION_HEAD_TURN_RIGHT = 10,
+			EXPRESSION_HEAD_UP = 11,
+			EXPRESSION_HEAD_DOWN = 12,
+			EXPRESSION_HEAD_TILT_LEFT = 13,
+			EXPRESSION_HEAD_TILT_RIGHT = 14,
+			/* End Deprecated API */
 
-			EXPRESSION_EYES_TURN_LEFT, 
-			EXPRESSION_EYES_TURN_RIGHT, 
-			EXPRESSION_EYES_UP,
-			EXPRESSION_EYES_DOWN,
-			EXPRESSION_TONGUE_OUT,
-			EXPRESSION_PUFF_RIGHT,
-			EXPRESSION_PUFF_LEFT
+			EXPRESSION_EYES_TURN_LEFT = 15,
+			EXPRESSION_EYES_TURN_RIGHT = 16,
+			EXPRESSION_EYES_UP = 17,
+			EXPRESSION_EYES_DOWN = 18,
+			EXPRESSION_TONGUE_OUT = 19,
+			EXPRESSION_PUFF_RIGHT = 20,
+			EXPRESSION_PUFF_LEFT = 21
 		};
 
 		struct FaceExpressionResult
@@ -244,7 +246,7 @@ public:
 			pxcI32 reserved[10];
 		};
 
-		/** 
+		/**
 			@brief Queries single expression result.
 			@param[in] expression requested expression
 			@param[out] expressionResult output of expression - for example intensity of expression in frame.
@@ -323,6 +325,112 @@ public:
 		virtual ~RecognitionModuleData() {}
 	};
 
+	struct GazePoint
+	{
+		PXCPointI32 screenPoint;
+		pxcI32 confidence;      
+		pxcI32 reserved[10];
+	};
+
+     /*
+	  * Before application starts using gaze data it’s expected to check calibrated state and status from data output.
+	  * The initial state is CALIBRATION_IDLE (calibration was not done and was not started), 
+	  * app can load ready calibration from file-system and then state will be CALIBRATION_DONE  or 
+	  * go to regular processing loop that first will run calibration flow.
+	  * During calibration flow MW will return new calibration points (state == CALIBRATION_NEW_POINT) and 
+	  * app is expected to present a new point on the screen or will keep calibration point in same place (state - CALIBRATION_SAME_POINT).
+	  * After ~10 points MW decides that calibration is done (state - CALIBRATION_DONE).
+	  * Then application can retrieve and store calibrated buffer and also use calibration status to decide whether needs to re-calibrate again. 
+ 	  */
+	class GazeCalibData
+	{
+		public:
+
+			enum CalibrationState
+			{
+				CALIBRATION_IDLE = 0,
+				CALIBRATION_NEW_POINT,
+				CALIBRATION_SAME_POINT,
+				CALIBRATION_DONE  
+			};
+
+			enum CalibrationStatus
+			{
+				CALIBRATION_STATUS_SUCCESS = 0, // calibration was completed successfully
+				CALIBRATION_STATUS_FAIR, // calibration was completed with fair results
+				CALIBRATION_STATUS_POOR, // calibration has poor results, consider re-calibrate
+				CALIBRATION_STATUS_FAILED // calibration failed, re-calibration is mandatory
+			};
+			
+			enum DominantEye
+			{
+				DOMINANT_RIGHT_EYE = 0,
+				DOMINANT_LEFT_EYE,
+				DOMINANT_BOTH_EYES		// A state for averaging both eyes, currently not supported.
+			};
+			/*
+			* Assigns gaze result to outGazeResult.
+			* Returns true if data and parameters exist, false otherwise.
+			*/
+			virtual CalibrationState PXCAPI QueryCalibrationState() const = 0;
+
+			/*
+			* Assigns gaze result to outGazeResult.
+			* Returns true if data and parameters exist, false otherwise.
+			*/
+			virtual PXCPointI32 PXCAPI QueryCalibPoint() const = 0;
+
+			/**
+				retrieves calibration data size
+			*/
+			virtual pxcI32 PXCAPI QueryCalibDataSize() const = 0;
+
+			/**
+				retrieves calibration data buffer.
+			*/
+			virtual CalibrationStatus PXCAPI QueryCalibData(pxcBYTE* outCalibBuffer) const = 0;
+
+			/**
+				The optimal eye of the current calibration - the one which yielded the highest accuracy between the two eyes, 
+				aiming at hitting the user's dominant eye; Unless the user requested set of the dominant eye.
+				This is the eye relied on in the gaze inference algorithm.				
+			*/
+			virtual DominantEye QueryCalibDominantEye() const = 0;
+
+		protected:
+			virtual ~GazeCalibData() {}
+	};
+
+
+	class GazeData
+	{
+		public:
+
+			/*
+			* Assigns gaze result to outGazeResult.
+			* The gaze point is given in pixels, where [0,0] is the top-left corner.
+			* Returns true if data and parameters exist, false otherwise.
+			*/
+			virtual GazePoint PXCAPI QueryGazePoint() const = 0;
+
+			/*
+			* Return gaze horizontal angle in degrees.
+			* Defined as the view angle from the gaze origin, with respect to a normal from the face. 
+			* Positive angle is to the person's right (zero is front observation).
+			*/
+			virtual pxcF64 PXCAPI QueryGazeHorizontalAngle() const = 0;
+
+			/*
+			* Return gaze vertical angle in degrees.
+			* Defined as the view angle from the gaze origin, with respect to a normal from the face. 
+			* Positive angle is up (zero is front observation).
+			*/
+			virtual pxcF64 PXCAPI QueryGazeVerticalAngle() const = 0;
+
+		protected:
+			virtual ~GazeData() {}
+	};
+
 	class Face
 	{
 	public:
@@ -360,6 +468,16 @@ public:
 		* Returns user's pulse data - null if it is not enabled.
 		*/
 		virtual PXCFaceData::PulseData* PXCAPI QueryPulse() = 0;		
+
+		/*
+		* Returns user's gaze data - null if it is not enabled.
+		*/
+		virtual PXCFaceData::GazeData* PXCAPI QueryGaze() = 0;
+
+		/*
+		* Returns user's gaze calibration data - null if it is not enabled.
+		*/
+		virtual PXCFaceData::GazeCalibData* PXCAPI QueryGazeCalibration() = 0;
 
      protected:
 		virtual ~Face() {}

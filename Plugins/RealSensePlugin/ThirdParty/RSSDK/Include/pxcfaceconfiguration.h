@@ -8,7 +8,7 @@ Copyright(c) 2011-2014 Intel Corporation. All Rights Reserved.
 
 *******************************************************************************/
 #pragma once
-#include <pxcbase.h>
+#include "pxcbase.h"
 #include "pxcfacedata.h"
 
 class PXCFaceConfiguration : public PXCBase
@@ -159,7 +159,7 @@ public:
 		{
 			properties.accuracyThreshold = threshold;
 		}
-		__inline pxcI32 GetAccuracryThreshold()
+		__inline pxcI32 GetAccuracyThreshold()
 		{
 			return properties.accuracyThreshold;
 		}
@@ -249,10 +249,38 @@ public:
 		virtual ~PulseConfiguration() {}
 	};
 
+	class GazeConfiguration
+	{
+		public:		
+
+			pxcBool isEnabled;
+			/**
+				loads previously calculated calibration data
+			*/
+			virtual pxcStatus PXCAPI LoadCalibration(pxcBYTE* buffer, pxcI32 size) = 0;
+
+			/**
+				retrieves calibration data size
+			*/
+			virtual pxcI32 PXCAPI QueryCalibDataSize() const = 0;
+
+			/**
+				The actual dominant eye as entered by the user, modifying the optimal eye suggested by the calibration.
+				An alternative option to setting the dominant eye would be to repeat calibration, QueryCalibDominantEye until desired result is reached.
+				The dominant eye is a preference of visual input from one eye over the other.
+				This is the eye relied on in the gaze inference algorithm.
+			*/
+			virtual void PXCAPI SetDominantEye(PXCFaceData::GazeCalibData::DominantEye eye) = 0;
+
+	protected:
+		virtual ~GazeConfiguration() {}
+	};
+
 	enum TrackingModeType
 	{
 		FACE_MODE_COLOR,
-		FACE_MODE_COLOR_PLUS_DEPTH
+		FACE_MODE_COLOR_PLUS_DEPTH,
+		FACE_MODE_COLOR_STILL
 	};
 
 	DetectionConfiguration detection;
@@ -283,8 +311,8 @@ public:
  	};
 
  	/*
- 		@brief Enable alert, so that events are fired when the alert is identified.			
- 		@param[in] alertEvent the label of the alert to enabled. 
+ 		@brief Enable alert, so that events are fired when the alert is identified.
+ 		@param[in] alertEvent the label of the alert to enabled.
  		@return PXC_STATUS_NO_ERROR if the alert was enabled successfully; otherwise, return one of the following errors:
  		PXC_STATUS_PARAM_UNSUPPORTED - Unsupported parameter.
  		PXC_STATUS_DATA_NOT_INITIALIZED - Data failed to initialize.
@@ -316,13 +344,13 @@ public:
  	virtual pxcStatus PXCAPI DisableAlert(PXCFaceData::AlertData::AlertType alertEvent) = 0;
  
  	/*
- 		@brief Disable all alerts messaging for all events.                        
+ 		@brief Disable all alerts messaging for all events.
  		@return PXC_STATUS_NO_ERROR if disabling all alerts was successful; otherwise, return one of the following errors:
  		PXC_STATUS_PROCESS_FAILED - Module failure during processing.
  		PXC_STATUS_DATA_NOT_INITIALIZED - Data failed to initialize.
  	*/
- 	virtual void PXCAPI DisableAllAlerts(void) = 0;        
-                 
+ 	virtual void PXCAPI DisableAllAlerts(void) = 0;
+
  	/*
  		@brief Register an event handler object for the alerts. The event handler's OnFiredAlert method will be called each time an alert is identified.
  		@param[in] alertHandler a pointer to the event handler.
@@ -355,4 +383,6 @@ public:
 	virtual pxcStatus PXCAPI Update() = 0;
 
 	virtual PulseConfiguration* PXCAPI QueryPulse() = 0;
+
+	virtual GazeConfiguration* PXCAPI QueryGaze() = 0;
 };

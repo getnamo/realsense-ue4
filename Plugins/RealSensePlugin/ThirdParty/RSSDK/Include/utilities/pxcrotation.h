@@ -26,7 +26,7 @@ Copyright(c) 2011-2015 Intel Corporation. All Rights Reserved.
 	PXCPoint4DF32 quaternion; // You should set the quaternion
 
 	// Create PXCsession instance
-	PXCSession* session = PXCSession_Create();
+	PXCSession* session = PXCSession::CreateInstance();
 
 	// Create PXCRotation instance
 	PXCRotation* rotation;
@@ -59,7 +59,7 @@ public:
 	    @enum EulerOrder
 		EulerOrder indicates the order in which to get the Euler angles.
 		This order matters. (ROLL_PITCH_YAW !=  ROLL_YAW_PITCH)
-		Pitch, Yaw and Roll are the rotation angles around the x, y and z axis accordingly.
+		Roll, Pitch and Yaw are the angles of rotation around the x, y and z axis accordingly.
     */
     enum EulerOrder
     {
@@ -77,14 +77,14 @@ public:
 		@brief get rotation in Euler angles representation.
 		Euler angles are a 3D point that represents rotation in 3D. Each variable is the angle 
 		of rotation around a certain axis (x/y/z). 
-		The output vector will contain the Euler angles values in the given order.
-		@param[in] order the order in which we get the Euler angles (PITCH_YAW_ROLL as default)
-		@return 3D point containing Euler angles in radians.
+
+		@param[in] order the order in which we get the Euler angles (ROLL_PITCH_YAW as default)
+		@return 3D point containing Euler angles (RADIANS) in the given order.
 	*/		
 	virtual PXCPoint3DF32 PXCAPI QueryEulerAngles(EulerOrder order) = 0;
 	inline PXCPoint3DF32 QueryEulerAngles()
 	{ 
-		return QueryEulerAngles(PITCH_YAW_ROLL);
+		return QueryEulerAngles(ROLL_PITCH_YAW);
 	}
 
 	/**			
@@ -103,37 +103,35 @@ public:
 	/**			
 		@brief get rotation in angle-axis representation.
 		angle-axis represents rotation (angle in RADIANS) around an axis
-		@return AngleAxis struct containing the axis and angle or rotation around this axis.
+		@return AngleAxis struct containing an axis and angle of rotation around this axis.
 	*/	
 	virtual AngleAxis PXCAPI QueryAngleAxis() = 0;
 
 
 	// Query roll/pitch/yaw equivalents 
 	/**			
-		@brief get roll - angle of rotation around z axis. 
-		Note that we always reproject the axis. Meaning this function is independent of QueryPitch and QueryYaw.
+		@brief get roll - angle of rotation around z axis using ROLL_PITCH_YAW eulerOrder. 
 		@return roll - angle of rotation around the z axis 		
 	*/		
-	virtual pxcF32  PXCAPI QueryRoll() = 0;
+	virtual pxcF32 __declspec(deprecated("Deprecated. Use QueryEulerAngles instead")) QueryRoll() = 0;
 
 	/**			
-		@brief get pitch - angle of rotation around x axis. 
-		Note that we always reproject the axis. Meaning this function is independent of QueryRoll and QueryYaw.
+		@brief get pitch - angle of rotation around x axis using ROLL_PITCH_YAW eulerOrder. 
 		@return pitch - angle of rotation around the x axis 		
 	*/		
-	virtual pxcF32 PXCAPI QueryPitch() = 0;
-
+	virtual pxcF32 __declspec(deprecated("Deprecated. Use QueryEulerAngles instead")) QueryPitch() = 0;
+	
 	/**			
-		@brief get yaw - angle of rotation around y axis. 
-		Note that we always reproject the axis. Meaning this function is independent of QueryPitch and QueryRoll.
+		@brief get yaw - angle of rotation around y axis using ROLL_PITCH_YAW eulerOrder. 
 		@return pitch - angle of rotation around the y axis 		
 	*/	
-	virtual pxcF32 PXCAPI QueryYaw() = 0;
+	virtual pxcF32 __declspec(deprecated("Deprecated. Use QueryEulerAngles instead")) QueryYaw() = 0;
 
 
 	// Useful functions
 	/**			
 		@brief Set rotation as a concatenation of current rotation and the given Rotation.
+		Note: Multiplication is not generally commutative, so in most cases p*q != q*p.
 		@param[in]  rotation - the given rotation
 	*/	
 	virtual void PXCAPI Rotate(const PXCRotation* rotation) = 0;
@@ -154,15 +152,11 @@ public:
 	*/		
 	virtual void PXCAPI SetFromQuaternion(const PXCPoint4DF32& quaternion) = 0;
 
-	/**			
-		@brief Set rotation based on Euler angles.
-		Euler angles are a 3D point that represents rotation in 3D. Each variable is the angle 
-		of rotation around a certain axis (x/y/z). 
-		The order in which the Euler angles are given does not matter since they all represent
-		the same rotation instance.
-		@param[in] eulerAngle rotation in Euler angles representation.
-	*/		
-	virtual void PXCAPI SetFromEulerAngles(const PXCPoint3DF32& eulerAngles) = 0;
+	
+	inline void SetFromEulerAngles(const PXCPoint3DF32& eulerAngles)
+	{ 
+		return SetFromEulerAngles(eulerAngles, ROLL_PITCH_YAW);
+	}
 
 	/**			
 		@brief Set rotation based on a 3x3 rotation matrix.
@@ -187,4 +181,14 @@ public:
 		@param[in]  factor - interpolation factor
 	*/	
 	virtual void PXCAPI SetFromSlerp(pxcF32 factor, const PXCRotation* startRotation, const PXCRotation* endRotation) = 0;
+
+	/**			
+		@brief Set rotation based on Euler angles representation.
+		Euler angles are a 3D point that represents rotation in 3D. Each variable is the angle 
+		of rotation around a certain axis (x/y/z). 
+		
+		@param[in] eulerAngles the rotation in Euler angles representation.
+		@param[in] order the order in which we set the rotation (ROLL_PITCH_YAW as default).
+	*/		
+	virtual void PXCAPI SetFromEulerAngles(const PXCPoint3DF32& eulerAngles, EulerOrder order) = 0;
 };

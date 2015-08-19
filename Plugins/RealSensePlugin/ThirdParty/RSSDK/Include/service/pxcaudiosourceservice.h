@@ -43,7 +43,7 @@ public:
         return QueryProfile(WORKING_PROFILE,profile); 
     }
 
-    /** @brief Opens audio stream, call once before ReadAsync
+    /** @brief Opens audio stream, call once before ReadSample
 	    @param[in] profile			The audio configuration parameters.
 	    @return PXC_STATUS_NO_ERROR             successful execution.
         @return PXC_STATUS_DEVICE_LOST          the device is disconnected.

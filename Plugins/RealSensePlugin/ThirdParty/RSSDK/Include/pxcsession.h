@@ -23,6 +23,7 @@ class PXCCaptureManager;
 class PXCAudioSource;
 class PXCSession;
 class PXCPowerState;
+class PXCPhoto;
 extern "C" PXCSession* PXCAPI PXCSession_Create(void);
 
 /**
@@ -56,7 +57,7 @@ public:
         IMPL_GROUP_OBJECT_RECOGNITION   =    0x00000001,    /* Object recognition algorithms */
         IMPL_GROUP_SPEECH_RECOGNITION   =    0x00000002,    /* Speech recognition algorithms */
         IMPL_GROUP_SENSOR               =    0x00000004,    /* I/O modules */
-		IMPL_GROUP_PHOTOGRAPHY          =    0x00000008,    /* Photography algorithms */
+		IMPL_GROUP_PHOTOGRAPHY          =    0x00000008,    /* Photography/Videography algorithms */
 		IMPL_GROUP_UTILITIES            =    0x00000010,	/* Utility modules */
 		IMPL_GROUP_CORE                 =    0x80000000,    /* Core SDK modules */
         IMPL_GROUP_USER                 =    0x40000000,    /* User defined algorithms */
@@ -82,7 +83,8 @@ public:
         IMPL_SUBGROUP_SCENE_PERCEPTION      = 0x00000800,    /* scene perception subgroup */
 
 		/* Photography building blocks */
-		IMPL_SUBGROUP_ENHANCED_PHOTOGRAPHY  = 0x00001000,    /* scene perception subgroup */
+		IMPL_SUBGROUP_ENHANCED_PHOTOGRAPHY  = 0x00001000,    /* enhanced photography subgroup */
+		IMPL_SUBGROUP_ENHANCED_VIDEOGRAPHY  = 0x00002000,    /* enhanced videography subgroup */
 
         /* sensor building blocks */
         IMPL_SUBGROUP_AUDIO_CAPTURE         = 0x00000001,    /* audio capture subgroup */
@@ -281,6 +283,16 @@ public:
     __inline PXCImage* CreateImage(PXCImage::ImageInfo *info) {
         return CreateImage(info, 0);
     }
+
+	/**
+	@brief Create an instance of the PXCPhoto interface.
+	@return The PXCPhoto instance.
+	*/
+	__inline PXCPhoto* CreatePhoto(void) {
+		PXCPhoto *photo = 0;
+		pxcStatus sts = CreateImpl(PXC_UID('G','D','V','2'), (void**)&photo);
+		return sts < PXC_STATUS_NO_ERROR ? 0 : photo;
+	}
 
     /** 
         @brief Create an instance of the PXCAudio interface with data. The application must

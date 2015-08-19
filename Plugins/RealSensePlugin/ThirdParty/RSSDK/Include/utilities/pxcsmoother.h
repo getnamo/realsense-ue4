@@ -41,7 +41,11 @@ public:
 			@param[in] value the latest data sample 
 			@return smoothed value in pxcF32 format
 		*/		
-		virtual pxcF32 PXCAPI SmoothValue(pxcF32 value) = 0; 
+		virtual pxcF32 PXCAPI SmoothValue(pxcF32 value) = 0;
+		/**			
+			@brief Reset smoother algorithm data
+		*/	
+		virtual void PXCAPI Reset() = 0;
 	};
 
 	/** @class Smoother2D
@@ -58,7 +62,11 @@ public:
 			@param[in] value the latest data sample 
 			@return smoothed value in PXCPointF32 format	
 		*/		
-		virtual PXCPointF32 PXCAPI SmoothValue(const PXCPointF32 & value) = 0; 
+		virtual PXCPointF32 PXCAPI SmoothValue(const PXCPointF32 & value) = 0;
+		/**			
+			@brief Reset smoother algorithm data
+		*/	
+		virtual void PXCAPI Reset() = 0;
 	};
 
 	/** @class Smoother3D
@@ -75,7 +83,11 @@ public:
 			@param[in] value the latest data sample 
 			@return smoothed value in PXCPoint3DF32 format		
 		*/		
-		virtual PXCPoint3DF32 PXCAPI SmoothValue(const PXCPoint3DF32 & value) = 0; 
+		virtual PXCPoint3DF32 PXCAPI SmoothValue(const PXCPoint3DF32 & value) = 0;
+		/**			
+			@brief Reset smoother algorithm data
+		*/	
+		virtual void PXCAPI Reset() = 0;
 	};
 	
 		/** @brief Create Stabilizer smoother instance for single floats

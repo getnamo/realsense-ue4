@@ -47,49 +47,16 @@ public:
 	*/
 	virtual pxcStatus PXCAPI Update() = 0;
 
-	/* Configuration */
-	
-   	/**
-		@brief Set the smoothing strength for the segmentation image.
-		@param[in] smoothingValue - a value between 0 (no smoothing) to 1 (very smooth).
-		@return PXC_STATUS_NO_ERROR - successful operation.
-		@return PXC_STATUS_PARAM_UNSUPPORTED - invalid smoothing value.
-		@see QuerySegmentationSmoothing
-	*/
-	virtual pxcStatus PXCAPI SetSegmentationSmoothing(pxcF32 smoothingValue) = 0;
-
-	/**
-		@brief Get the segmentation image smoothing value.
-		@return The segmentation image smoothing value.
-		@see SetSegmentationSmoothing
-	*/
-	virtual pxcF32  PXCAPI QuerySegmentationSmoothing() = 0;
-	
-	
-	/**
-		@brief Sets the contour smoothing value.
-		@param[in] smoothingValue - a value between 0 (no smoothing) to 1 (very smooth).
-		@return PXC_STATUS_NO_ERROR - successful operation.
-		@return PXC_STATUS_PARAM_UNSUPPORTED - invalid smoothing value.
-		@see QueryContourSmoothing
-	*/
-	virtual pxcStatus PXCAPI SetContourSmoothing(pxcF32 smoothingValue) = 0;
-
-	/**
-		@brief Get the contour smoothing value.
-		@return The contour smoothing value.
-		@see SetContourSmoothing
-	*/
-	virtual pxcF32  PXCAPI QueryContourSmoothing() = 0;
-		
-	/** 
-		@brief Set the maximal number of blobs that can be detected (default is 1).
-		@param[in] maxBlobs - the maximal number of blobs that can be detected (limited to 4).
-		@return PXC_STATUS_NO_ERROR - successful operation.
-		@return PXC_STATUS_PARAM_UNSUPPORTED - invalid maxBlobs value (in this case, the last valid value will be retained).
-		@see QueryMaxBlobs
-	*/
-	virtual pxcStatus PXCAPI SetMaxBlobs(const pxcI32 maxBlobs) = 0;
+    /* Configuration */
+        
+    /** 
+        @brief Set the maximal number of blobs that can be detected (default is 1).
+        @param[in] maxBlobs - the maximal number of blobs that can be detected (limited to 4).
+        @return PXC_STATUS_NO_ERROR - successful operation.
+        @return PXC_STATUS_PARAM_UNSUPPORTED - invalid maxBlobs value (in this case, the last valid value will be retained).
+        @see QueryMaxBlobs
+    */
+    virtual pxcStatus PXCAPI SetMaxBlobs(const pxcI32 maxBlobs) = 0;
 
 	/**
 		@brief Get the maximal number of blobs that can be detected.
@@ -101,7 +68,7 @@ public:
 	/** 
 		@brief Set the maximal distance in meters of a detected blob from the sensor. 
 		Only objects that are within this limit will be identified as blobs.
-		@param[in] maxDistance - the maximal distance in meters of a blob from the sensor
+		@param[in] maxDistance - the maximal distance in millimeters of a blob from the sensor
 		@return PXC_STATUS_NO_ERROR - successful operation
 		@return PXC_STATUS_PARAM_UNSUPPORTED - invalid maxDistance value (in this case, the last valid value will be retained).
 		@see QueryMaxDistance
@@ -109,15 +76,15 @@ public:
 	virtual pxcStatus PXCAPI SetMaxDistance(pxcF32 maxDistance) = 0;
 
 	/** 
-		@brief Get the maximal distance in meters of a detected blob from the sensor. 
+		@brief Get the maximal distance in millimeters of a detected blob from the sensor. 
 		@return The maximal distance of a detected blob from the sensor.
 		@see SetMaxDistance
 	*/
 	virtual pxcF32 PXCAPI QueryMaxDistance(void) const = 0;
 	
 	/**
-		@brief Set the maximal depth in meters of a blob (maximal distance between closest and farthest points in the blob).
-		@param[in] maxDepth - the maximal depth in meters of the blob.
+		@brief Set the maximal depth in millimeters of a blob (maximal distance between closest and farthest points in the blob).
+		@param[in] maxDepth - the maximal depth in millimeters of the blob.
 		@return PXC_STATUS_NO_ERROR - successful operation.
 		@return PXC_STATUS_PARAM_UNSUPPORTED - invalid maxDepth value (in this case, the last valid value will be retained).
 		@see QueryMaxObjectDepth
@@ -125,8 +92,8 @@ public:
 	virtual pxcStatus PXCAPI SetMaxObjectDepth(pxcF32 maxDepth) = 0;
 
 	/** 
-		@brief Get the maximal depth in meters of a blob.
-		@return The maximal depth in meters of a blob.
+		@brief Get the maximal depth in millimeters of a blob.
+		@return The maximal depth in millimeters of a blob.
 		@see SetMaxObjectDepth
 	*/
 	virtual pxcF32 PXCAPI QueryMaxObjectDepth(void) const = 0;	
@@ -211,5 +178,97 @@ public:
 		@see SetMinContourSize
 	*/
 	virtual pxcI32 PXCAPI QueryMinContourSize(void) const = 0;
+
+
+	/** 
+		@brief Set the maximal blob size in pixels.
+		Only objects that are smaller than this size are identified as blobs.
+		@param[in] maxBlobSize - the maximal blob size in pixels.
+		@return PXC_STATUS_NO_ERROR - successful operation.
+		@return PXC_STATUS_PARAM_UNSUPPORTED - invalid maxBlobSize value (in this case, the last valid value will be retained).
+		@see QueryMaxPixelCount
+	*/
+	virtual pxcStatus PXCAPI SetMaxPixelCount(pxcI32 maxBlobSize) = 0;
+
+	/** 
+		@brief Get the maximal blob size in pixels.
+		@return The maximal blob size in pixels.
+		@see SetMinPixelCount
+	*/
+	virtual pxcI32 PXCAPI QueryMaxPixelCount(void) const = 0;	
+
+	/** 
+		@brief Set the maximal blob area in square meter .
+		Only objects that are smaller than this area are identified as blobs.
+		@param[in] maxBlobArea - the maximal blob area in square meter.
+		@return PXC_STATUS_NO_ERROR - successful operation.
+		@return PXC_STATUS_PARAM_UNSUPPORTED - invalid maxBlobArea value (in this case, the last valid value will be retained).
+		@see QueryMaxBlobArea
+	*/
+	virtual pxcStatus PXCAPI SetMaxBlobArea(pxcF32 maxBlobArea) = 0;
+
+	/** 
+		@brief Get the maximal blob area in square meter.
+		@return The maximal blob area in square meter.
+		@see SetMaxBlobArea
+	*/
+	virtual pxcF32  PXCAPI QueryMaxBlobArea(void) const = 0;	
+
+	/** 
+		@brief Set the minimal blob area in square meter.
+		Only objects that are larger than this area are identified as blobs.
+		@param[in] minBlobArea - the minimal blob area in square meter.
+		@return PXC_STATUS_NO_ERROR - successful operation.
+		@return PXC_STATUS_PARAM_UNSUPPORTED - invalid minBlobArea value (in this case, the last valid value will be retained).
+		@see QueryMinBlobArea
+	*/
+	virtual pxcStatus PXCAPI SetMinBlobArea(pxcF32 minBlobArea) = 0;
+
+	/** 
+		@brief Get the minimal blob area in square meter.
+		@return The minimal blob area in square meter.
+		@see SetMinBlobArea
+	*/
+	virtual pxcF32  PXCAPI QueryMinBlobArea(void) const = 0;	
+
+
+	/**
+		@brief Enable blob data extraction correlated to color stream.
+		@param[in] enableFlag - set to true if color mapping should be extracted; otherwise set to false. 
+		@return PXC_STATUS_NO_ERROR - successful operation.
+		@see IsColorMappingEnabled
+		@see  QueryBlob
+		@see  enum SegmentationImageType		
+	*/
+	virtual pxcStatus PXCAPI EnableColorMapping(pxcBool enableFlag) = 0;
+
+	/**
+	@brief Return the color mapping extraction flag.
+	@return The color mapping extraction flag.
+	@see EnableColorMapping
+	*/
+	virtual pxcBool  PXCAPI IsColorMappingEnabled() = 0;	
+
+
+	 /**
+		@brief Set the smoothing strength for the blob extraction.
+		@param[in] smoothingValue - a value between 0 (no smoothing) to 1 (strong smoothing).
+		@return PXC_STATUS_NO_ERROR - successful operation.
+		@return PXC_STATUS_PARAM_UNSUPPORTED - invalid smoothing value (in this case, the last valid value will be retained).
+		@see QueryBlobSmoothing
+	*/
+	virtual pxcStatus PXCAPI SetBlobSmoothing(pxcF32 smoothingValue) = 0;
+
+	/**
+		@brief Get the segmentation blob smoothing value.
+		@return The segmentation image smoothing value.
+		@see SetBlobSmoothing
+	*/
+	virtual pxcF32  PXCAPI QueryBlobSmoothing() = 0;
+
+    inline pxcStatus __declspec(deprecated("Deprecated. Use SetBlobSmoothing instead.")) SetSegmentationSmoothing(pxcF32 smoothingValue) { return SetBlobSmoothing(smoothingValue); }
+    inline pxcStatus __declspec(deprecated("Deprecated. Use SetBlobSmoothing instead.")) SetContourSmoothing(pxcF32 smoothingValue) { return SetBlobSmoothing(smoothingValue); }
+    inline pxcF32 __declspec(deprecated("Deprecated. Use QueryBlobSmoothing instead."))  QuerySegmentationSmoothing() { return QueryBlobSmoothing(); }
+    inline pxcF32 __declspec(deprecated("Deprecated. Use QueryBlobSmoothing instead."))  QueryContourSmoothing() { return QueryBlobSmoothing(); }    
 };
  

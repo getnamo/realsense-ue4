@@ -9,9 +9,9 @@ Copyright(c) 2011-2014 Intel Corporation. All Rights Reserved.
 *******************************************************************************/
 #pragma once
 #include "pxcbase.h"
+#include "pxcfaceconfiguration.h"
+#include "pxcfacedata.h"
 
-class PXCFaceConfiguration;
-class PXCFaceData;
 class PXCFaceModule : public PXCBase 
 {
 public:

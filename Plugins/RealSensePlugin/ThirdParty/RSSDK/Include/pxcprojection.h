@@ -13,6 +13,7 @@ Copyright(c) 2012-2014 Intel Corporation. All Rights Reserved.
   */
 #pragma once
 #include "pxcimage.h"
+#include "pxccalibration.h"
 
 /**
     This interface defines mappings between various coordinate systems
@@ -114,14 +115,14 @@ public:
         @param[in] color        The color image instance.
         @return The output image in the depth image resolution.
     */ 
-    virtual PXCImage* PXCAPI CreateColorImageMappedToDepth(PXCImage *depth, PXCImage *color)=0;                 
+    virtual PXCImage* PXCAPI CreateColorImageMappedToDepth(PXCImage *depth, PXCImage *color)=0;
 
     /** 
-        @brief Map every depth pixel to the color image resolution using the UV map, and output an incomplete 
-        depth image (with holes), aligned in space and resolution to the color image. 
+        @brief Map every depth pixel to the color image resolution, and output a depth image, aligned in space
+        and resolution to the color image. The color image size may be different from original.
         @param[in] depth        The depth image instance.
         @param[in] color        The color image instance.
         @return The output image in the color image resolution.
     */ 
-    virtual PXCImage* PXCAPI CreateDepthImageMappedToColor(PXCImage *depth, PXCImage *color)=0;          
+    virtual PXCImage* PXCAPI CreateDepthImageMappedToColor(PXCImage *depth, PXCImage *color)=0;
 };

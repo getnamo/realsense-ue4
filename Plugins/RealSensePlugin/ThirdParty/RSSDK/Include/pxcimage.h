@@ -61,7 +61,7 @@ public:
     @param[in]  format        pixel format.
     @return string presentation.
     */
-    __inline static const pxcCHAR *PixelFormatToString(PixelFormat format) {
+    static __inline const pxcCHAR *PixelFormatToString(PixelFormat format) {
         switch (format) {
         case PIXEL_FORMAT_RGB24:        return (const pxcCHAR*)L"RGB24";
         case PIXEL_FORMAT_RGB32:        return (const pxcCHAR*)L"RGB32";
@@ -107,6 +107,17 @@ public:
         ACCESS_READ         = 1,                            /* read only access     */
         ACCESS_WRITE        = 2,                            /* write only access    */
         ACCESS_READ_WRITE   = ACCESS_READ | ACCESS_WRITE,   /* read write access    */
+    };
+
+    /**
+    @enum Rotation
+    Image rotation options.
+    */
+    enum Rotation {
+        ROTATION_0_DEGREE	    = 0x0,    /* 0 Degree rotation */
+        ROTATION_90_DEGREE  = 90,     /* 90 degree clockwise rotation */
+        ROTATION_180_DEGREE = 180,   /* 180 degree clockwise rotation */
+        ROTATION_270_DEGREE = 270,   /* 270 degree clockwise rotation */
     };
 
     /** 
@@ -195,6 +206,9 @@ public:
     @return PXC_STATUS_NO_ERROR    Successful execution.
     */
     virtual pxcStatus PXCAPI AcquireAccess(Access access, PixelFormat format, Option options, ImageData *data)=0;
+    __inline pxcStatus AcquireAccess(Access access, PixelFormat format, Rotation rotation, Option options, ImageData *data) {
+        return AcquireAccess(access, format, (Option)(rotation | options), data);
+    }
 
     /** 
     @brief Lock to access the internal storage of a specified format. The function will perform format conversion if unmatched. 
@@ -235,7 +249,7 @@ public:
 /** 
 A helper function for bitwise OR of two flags.
 */
-__inline static PXCImage::Option operator | (PXCImage::Option a, PXCImage::Option b) {
+static __inline PXCImage::Option operator | (PXCImage::Option a, PXCImage::Option b) {
     return (PXCImage::Option)((int)a|(int)b);
 }
 

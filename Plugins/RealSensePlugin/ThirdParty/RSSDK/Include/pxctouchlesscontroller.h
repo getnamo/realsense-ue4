@@ -44,7 +44,8 @@ public:
 			Configuration_Edge_Scroll_Horizontally = 0x00000040, // Enable horizontal scrolling when pointer is on the edge of the screen
 			Configuration_Edge_Scroll_Vertically = 0x00000080, // Enable vertical scrolling  when pointer is on the edge of the screen
 			Configuration_Allow_Back = 0x00000200, //  Enable Back Gesture
-			Configuration_Allow_Selection = 0x00000400 //  Enable Selection Gesture (Default value)
+			Configuration_Allow_Selection = 0x00000400, //  Enable Selection Gesture (Default value)
+			Configuration_Disable_On_Mouse_Move = 0x00000800 // if enabled TouchlessController will stop tracking the hand while the mouse moves
 		};
 
 		
