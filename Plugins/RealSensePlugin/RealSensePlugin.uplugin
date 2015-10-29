@@ -6,7 +6,7 @@
 	"VersionName" : "0.2.0",
 	"CreatedBy" : "Getnamo",
 	"CreatedByURL" : "http://syntheticinsights.com",
-	"EngineVersion" : "4.8+",
+	"EngineVersion" : "4.9+",
 	"Description" : "Unofficial Plugin for Intel Real Sense 3D.",
 	"Category" : "Input.Controller",
 	
