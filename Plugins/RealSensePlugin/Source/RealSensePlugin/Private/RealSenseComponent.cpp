@@ -42,11 +42,6 @@ void URealSenseComponent::OnRegister()
 
 	//Attach the delegate pointer automatically
 	SetInterfaceDelegate(GetOwner());
-
-	//Track and warn users about multiple components.
-	//controllerCount++;
-	//if (controllerCount>1)
-	//	UE_LOG(LeapPluginLog, Warning, TEXT("Warning! More than one (%d) RealSense Component detected! Duplication of work and output may result (inefficiency warning)."), controllerCount);
 }
 
 void URealSenseComponent::OnUnregister()
@@ -54,12 +49,7 @@ void URealSenseComponent::OnUnregister()
 	UE_LOG(LogClass, Log, TEXT("Unregistered RealSense Component"));
 	Super::OnUnregister();
 
-	//Allow GC of private UObject data
-	/*_private->CleanupEventData();	//UObjects attached to root need to be unrooted before we unregister so we do not crash between pie sessions (or without attaching to this object, leak them)
-	controllerCount--;
-
-	
-	//*/
+	SetInterfaceDelegate(NULL);
 }
 
 void URealSenseComponent::TickComponent(float DeltaTime, enum ELevelTick TickType,
@@ -72,8 +62,30 @@ void URealSenseComponent::TickComponent(float DeltaTime, enum ELevelTick TickTyp
 
 }
 
+
+void URealSenseComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+
+	//by default disable gestures so each begin play is unique
+	EnableGesture(false,FString());
+}
+
 void URealSenseComponent::SetInterfaceDelegate(UObject* newDelegate)
 {
+
+	if (newDelegate == NULL)
+	{
+		UE_LOG(LogClass, Log, TEXT("NULL delegate passed, clearing delegate"));
+		//set module delegate
+		if (IRealSensePlugin::IsAvailable())
+		{
+			IRealSensePlugin::Get().SetInterfaceDelegate(NULL);
+		}
+		return;
+	}
+
+	//Its not null so its probably a UObject.
 	UE_LOG(LogClass, Log, TEXT("InterfaceObject: %s"), *newDelegate->GetName());
 
 	//Use this format to support both blueprint and C++ form
@@ -93,11 +105,28 @@ void URealSenseComponent::SetInterfaceDelegate(UObject* newDelegate)
 	}
 }
 
-void URealSenseComponent::EnableGestures(bool enableAll)
+void URealSenseComponent::EnableGesture(bool enable, FString gesture)
 {
 	if (IRealSensePlugin::IsAvailable())
 	{
-		IRealSensePlugin::Get().EnableGestureDetection(enableAll);
+		IRealSensePlugin::Get().EnableGestureDetection(enable, gesture);
+	}
+}
+
+
+void URealSenseComponent::EnableAllGestures(bool enableAll)
+{
+	if (IRealSensePlugin::IsAvailable())
+	{
+		IRealSensePlugin::Get().EnableAllGestureDetection(enableAll);
+	}
+}
+
+void URealSenseComponent::EnableHandTracking(bool enable)
+{
+	if (IRealSensePlugin::IsAvailable())
+	{
+		IRealSensePlugin::Get().EnableHandDetection(enable);
 	}
 }
 
@@ -110,10 +139,4 @@ void URealSenseComponent::InterfaceEventTick(float DeltaTime)
 	{
 		IRealSensePlugin::Get().RealSenseTick(DeltaTime);
 	}
-
-	//Check all the data we collected
-
-	//Call joint moved for each joint we've collected
-	//IRealSenseInterface::Execute_JointMoved(_private->interfaceDelegate, blah);
-	
 }

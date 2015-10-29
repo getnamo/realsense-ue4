@@ -39,6 +39,10 @@ public:
 	 */
 	virtual void RealSenseTick(float DeltaTime){};
 	virtual void SetInterfaceDelegate(UObject* object){};
-	virtual void EnableGestureDetection(bool enableAll){};
+
+	virtual void EnableGestureDetection(bool enable, FString gesture){};
+	virtual void EnableAllGestureDetection(bool enableAll){};
+	virtual void EnableHandDetection(bool enable){};
+	virtual void EnableFaceDetection(bool enable){};
 };
 

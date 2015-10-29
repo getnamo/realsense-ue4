@@ -1,6 +1,8 @@
 #pragma once
 
 class DataCollector;
+class URealSenseHandWorker;
+class URealSenseFaceWorker;
 //class RealSenseDelegate;
 
 class FRealSensePlugin : public IRealSensePlugin
@@ -19,9 +21,13 @@ public:
 	void SetInterfaceDelegate(UObject* object);
 
 private:
-	DataCollector *collector;
+	//DataCollector *collector;
+	URealSenseHandWorker* handWorker = nullptr;
+	URealSenseFaceWorker* faceWorker = nullptr;
 
-	void EnableHandDetection();
-	void EnableGestureDetection(bool enableAll);
-	void EnableFaceDetection();
+	void EnableHandDetection(bool enable);
+	void EnableGestureDetection(bool enable, FString gesture);
+	void EnableAllGestureDetection(bool enableAll);
+	void EnableFaceDetection(bool enable);
+	void EnableStreams();
 };

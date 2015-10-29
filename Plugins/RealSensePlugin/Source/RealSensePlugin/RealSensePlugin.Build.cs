@@ -84,7 +84,7 @@ namespace UnrealBuildTool.Rules
                 PublicIncludePaths.Add(Path.Combine(ThirdPartyPath, "RSSDK", "Include"));
             }
 
-            Definitions.Add(string.Format("WITH_RealSense_BINDING={0}", isLibrarySupported ? 1 : 0));
+            //Definitions.Add(string.Format("WITH_REALSENSE_BINDING={0}", isLibrarySupported ? 1 : 0));
 
             return isLibrarySupported;
         }

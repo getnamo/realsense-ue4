@@ -2,6 +2,8 @@
 #pragma once
 
 #include "RealSenseHand.h"
+#include "RealSenseFace.h"
+#include "RealSenseFaceLandmarkPoint.h"
 #include "RealSenseInterface.generated.h"
 
 
@@ -24,6 +26,18 @@ public:
 	//Joint
 	UFUNCTION(BlueprintImplementableEvent, Category = "RealSense Interface Event")
 	void JointMoved(URealSenseJoint* joint);
+
+	//Face
+	UFUNCTION(BlueprintImplementableEvent, Category = "RealSense Interface Event")
+	void FaceDetected(URealSenseFace* face);
+
+	//Landmarks
+	UFUNCTION(BlueprintImplementableEvent, Category = "RealSense Interface Event")
+	void FaceLandmarkMoved(URealSenseFaceLandmarkPoint* point);
+
+	//Expressions
+	UFUNCTION(BlueprintImplementableEvent, Category = "RealSense Interface Event")
+	void FaceExpressionsDetected(URealSenseFaceExpressions* expressions);
 
 	//Gestures
 	UFUNCTION(BlueprintImplementableEvent, Category = "RealSense Interface Gesture Event")
