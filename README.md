@@ -1,3 +1,8 @@
+Link to official plugin
+===================
+
+Intel now has an official plugin, see this github repo: https://github.com/GameTechDev/UE4RealSensePlugin
+
 realsense-ue4
 ====================
 
